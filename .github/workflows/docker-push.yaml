@@ -1,39 +1,44 @@
 name: Build and Push Docker Images
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
 
 jobs:
-  build-and-push:
+  build-and-push-auth-database:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        service:
-          - { name: 'auth-service', context: './services/auth-service' }
-          - { name: 'auth-database', context: './database/auth-database' }
-
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to Docker Hub
+      - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push ${{ matrix.service.name }}
+      - name: Build and push auth-database image
         uses: docker/build-push-action@v5
         with:
-          context: ${{ matrix.service.context }}
+          context: ./database/auth-database
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.service.name }}:latest
-          cache-from: type=inline
-          cache-to: type=inline,mode=max
+          tags: nguyenledaiphi/bicap:auth-database
+          
+
+  build-and-push-auth-service:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push auth-service image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./services/auth-service
+          push: true
+          tags: nguyenledaiphi/bicap:auth-service
