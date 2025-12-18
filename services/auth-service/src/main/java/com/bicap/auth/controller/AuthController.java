@@ -18,7 +18,7 @@ public class AuthController {
     @Autowired
     private IAuthenticationUser authenticationUser;
 
-    @PostMapping("/signup")
+    @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody AuthRequest authRequest) {
         try {
             User newUser = authenticationUser.registerNewUser(authRequest);
@@ -28,7 +28,7 @@ public class AuthController {
         }
     }
 
-    @PostMapping("/signin")
+    @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@RequestBody AuthRequest authRequest) {
         String token = authenticationUser.signIn(authRequest);
         if (token != null) {

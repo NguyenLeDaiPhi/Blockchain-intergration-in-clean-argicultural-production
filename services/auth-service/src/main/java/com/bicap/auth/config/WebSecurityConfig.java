@@ -46,7 +46,8 @@ public class WebSecurityConfig {
         http.csrf(csrf -> csrf.disable()) // Disable CSRF for stateless APIs
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Use stateless sessions
             .authorizeHttpRequests(auth -> auth.requestMatchers("/api/auth/**").permitAll() // Allow public access to authentication endpoints
-                                               .anyRequest().authenticated()); // All other requests require authentication
+                                               .anyRequest().authenticated()) // All other requests require authentication
+            .authenticationProvider(authenticationProvider());
         return http.build();
     }
 }
