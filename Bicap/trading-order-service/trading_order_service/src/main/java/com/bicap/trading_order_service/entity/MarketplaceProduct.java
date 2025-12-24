@@ -90,4 +90,8 @@ public class MarketplaceProduct {
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
+    @PrePersist
+    protected void onCreate() {
+    this.createdAt = LocalDateTime.now();
+}
 }
