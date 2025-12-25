@@ -86,7 +86,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/login', (req, res) => {
-    res.render('login');
+    res.render('login', { error: null });
 });
 
 // -------------------------------------------------------------
@@ -107,7 +107,7 @@ app.post('/login', async (req, res) => {
 
         if (!apiResponse.ok) {
             console.log('Login failed from API:', responseText);
-            return res.status(apiResponse.status).send(responseText || 'Invalid credentials.');
+            return res.status(apiResponse.status).render('login', { error: responseText || 'Invalid credentials.' });
         }
     
         const accessToken = responseText;
@@ -123,7 +123,7 @@ app.post('/login', async (req, res) => {
         if (!userRoles || !userRoles.includes(APPLICATION_ROLE)) {
             console.error(`Role Mismatch: Required ${APPLICATION_ROLE}, Got ${userRoles}`);
             clearAuthCookie(res); 
-            return res.status(403).send(`Access Denied. You need ${APPLICATION_ROLE}.`);
+            return res.status(403).render('login', { error: `Access Denied. You need ${APPLICATION_ROLE}.` });
         }
 
         // 3. Set Cookie
@@ -140,7 +140,7 @@ app.post('/login', async (req, res) => {
 
     } catch (error) {
         console.error('Login Route Error:', error.message);
-        return res.status(503).send('Login Error: ' + error.message);
+        return res.status(503).render('login', { error: 'Login Error: ' + error.message });
     }
 });
 
@@ -161,7 +161,7 @@ app.post('/register', async (req, res) => {
                 username, 
                 password, 
                 email, 
-                role: 'RETAILER'  // FIX: Send as string matching backend's expected value (not array, and "RETAILER" not "ROLE_RETAILER")
+                role: 'ROLE_RETAILER'  // FIX: Send as string matching backend's expected value (not array, and "RETAILER" not "ROLE_RETAILER")
             }),
         });
         

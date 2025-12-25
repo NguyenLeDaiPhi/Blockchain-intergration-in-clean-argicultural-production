@@ -19,5 +19,4 @@ COPY . .
 EXPOSE 3000
 
 # Command to run the application, pointing to the correct entrypoint
-CMD [ "node", "src/server.js" ]
 CMD [ "npm", "start" ]

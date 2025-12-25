@@ -1,10 +1,10 @@
 {
-  "name": "authentication-front-end",
+  "name": "retailer-front-end",
   "version": "1.0.0",
-  "description": "Front-end for auth-service",
-  "main": "src/server.js",
+  "description": "auth-service",
+  "main": "npm start",
   "scripts": {
-    "start": "nodemon src/server.js"
+    "start": "nodemon src/authentication.js"
   },
   "dependencies": {
     "body-parser": "^1.20.2",
