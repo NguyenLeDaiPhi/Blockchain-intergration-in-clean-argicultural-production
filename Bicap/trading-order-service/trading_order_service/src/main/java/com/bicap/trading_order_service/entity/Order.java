@@ -3,6 +3,7 @@ package com.bicap.trading_order_service.entity;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -25,8 +26,8 @@ public class Order {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
-    private List<OrderItem> items;
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OrderItem> items = new ArrayList<>();
 
     /* ===================== JPA LIFECYCLE ===================== */
 
@@ -71,5 +72,14 @@ public class Order {
 
     public List<OrderItem> getItems() {
         return items;
+    }
+    public void addItem(OrderItem item) {
+    items.add(item);
+    item.setOrder(this);
+    }
+
+    public void removeItem(OrderItem item) {
+    items.remove(item);
+    item.setOrder(null);
     }
 }
