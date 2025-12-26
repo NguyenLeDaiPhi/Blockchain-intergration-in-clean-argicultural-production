@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.bicap.farm_production.entity.FarmingSeason;
 import com.bicap.farm_production.entity.SeasonStatus;
 import com.bicap.farm_production.repository.FarmingSeasonRepository;
+import com.bicap.farm_production.util.BlockchainConstants;
 
 @Service
 public class FarmingSeasonService {
@@ -36,10 +37,18 @@ public class FarmingSeasonService {
         savedSeason.setStatus(SeasonStatus.PENDING_BLOCKCHAIN);
         repository.save(savedSeason);
 
-        // 4. Gửi sang RabbitMQ
-        blockchainProducer.sendToBlockchain(savedSeason.getId().toString(), dataHash);
+        // 4. Gửi sang RabbitMQ (Sử dụng Constant TYPE_SEASON)
+        blockchainProducer.sendToBlockchain(
+            savedSeason.getId().toString(), 
+            dataHash, 
+            BlockchainConstants.TYPE_SEASON
+        );
 
         return savedSeason;
+    }
+
+    public List<FarmingSeason> getAllSeasons() {
+        return repository.findAll();
     }
 
     private String calculateSHA256(String data) {
@@ -56,9 +65,5 @@ public class FarmingSeasonService {
         } catch (Exception e) {
             throw new RuntimeException("Error calculating hash", e);
         }
-    }
-    
-    public List<FarmingSeason> getAllSeasons() {
-        return repository.findAll();
     }
 }

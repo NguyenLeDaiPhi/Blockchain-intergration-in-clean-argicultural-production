@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.bicap.farm_production.dto.BlockchainMessage;
+import com.bicap.farm_production.util.BlockchainConstants;
 
 @Service
 public class BlockchainProducer {
@@ -19,15 +20,21 @@ public class BlockchainProducer {
     @Value("${bicap.rabbitmq.routing-key.request}")
     private String routingKey;
 
-    public void sendToBlockchain(String id, String dataHash) {
+    /**
+     * Gửi yêu cầu ghi dữ liệu lên Blockchain
+     * @param id ID của đối tượng (Season ID hoặc Process ID)
+     * @param dataHash Hash SHA-256 của dữ liệu
+     * @param objectType Loại đối tượng (Lấy từ BlockchainConstants)
+     */
+    public void sendToBlockchain(String id, String dataHash, String objectType) {
         BlockchainMessage message = new BlockchainMessage(
             id, 
-            "SEASON", 
+            objectType, 
             dataHash, 
-            "CREATE"
+            BlockchainConstants.ACTION_CREATE // Sử dụng Constant thay vì hardcode "CREATE"
         );
         
-        System.out.println("Sending message to Queue: " + message);
+        System.out.println("Sending " + objectType + " to Queue: " + message);
         rabbitTemplate.convertAndSend(exchange, routingKey, message);
     }
 }

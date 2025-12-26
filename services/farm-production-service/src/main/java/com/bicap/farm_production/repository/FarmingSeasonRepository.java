@@ -7,4 +7,5 @@ import com.bicap.farm_production.entity.FarmingSeason;
 
 @Repository
 public interface FarmingSeasonRepository extends JpaRepository<FarmingSeason, Long> {
+    // Spring Data JPA sẽ tự động cung cấp các hàm như save(), findAll(), findById()...
 }

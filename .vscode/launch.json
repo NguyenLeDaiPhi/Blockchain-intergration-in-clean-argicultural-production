@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-FarmProductionApplication<farm-production>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.bicap.farm_production.FarmProductionApplication",
+            "projectName": "farm-production",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}
