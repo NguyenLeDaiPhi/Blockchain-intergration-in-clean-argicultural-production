@@ -10,4 +10,6 @@ import java.util.List;
 public interface DriverRepository extends JpaRepository<Driver, Long> {
     // Tìm tài xế theo loại xe (để gợi ý cho đơn hàng lớn/nhỏ)
     List<Driver> findByVehicleType(String vehicleType);
+    // Tìm tài xế theo biển số xe
+    boolean existsByVehiclePlate(String vehiclePlate);
 }
