@@ -19,14 +19,21 @@ public class Order {
     @Column(name = "total_amount", nullable = false, precision = 14, scale = 2)
     private BigDecimal totalAmount;
 
-    @Column(length = 50)
+    @Column(length = 50, nullable = false)
     private String status; // CREATED | CONFIRMED | REJECTED | COMPLETED
 
-    @Column(name = "created_at")
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderItem> items;
+
+    /* ===================== JPA LIFECYCLE ===================== */
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+    }
 
     /* ================= GETTER & SETTER ================= */
 
