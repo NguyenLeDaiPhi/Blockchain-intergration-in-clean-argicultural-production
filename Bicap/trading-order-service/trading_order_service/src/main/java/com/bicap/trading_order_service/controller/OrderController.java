@@ -5,6 +5,7 @@ import com.bicap.trading_order_service.dto.OrderResponse;
 import com.bicap.trading_order_service.service.IOrderService;
 import com.bicap.trading_order_service.service.OrderService;
 
+import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -36,5 +37,32 @@ public class OrderController {
     public ResponseEntity<OrderResponse> completeOrder(@PathVariable Long orderId) {
         OrderResponse response = orderService.completeOrder(orderId);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping
+    public List<OrderResponse> getOrdersByFarm(
+            @RequestParam Long farmId
+    ) {
+        return orderService.getOrdersByFarm(farmId);
+    }
+
+    /**
+     * Farm xác nhận đơn hàng
+     */
+    @PutMapping("/{orderId}/confirm")
+    public OrderResponse confirmOrder(
+            @PathVariable Long orderId
+    ) {
+        return orderService.confirmOrder(orderId);
+    }
+
+    /**
+     * Farm từ chối đơn hàng
+     */
+    @PutMapping("/{orderId}/reject")
+    public OrderResponse rejectOrder(
+            @PathVariable Long orderId
+    ) {
+        return orderService.rejectOrder(orderId);
     }
 }

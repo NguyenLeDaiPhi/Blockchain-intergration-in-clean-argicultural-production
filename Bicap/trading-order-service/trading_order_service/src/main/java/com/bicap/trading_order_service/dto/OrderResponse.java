@@ -2,6 +2,8 @@ package com.bicap.trading_order_service.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import com.bicap.trading_order_service.entity.Order;
+
 
 public class OrderResponse {
 
@@ -11,6 +13,17 @@ public class OrderResponse {
     private LocalDateTime createdAt;
 
     public OrderResponse(Long orderId,
+                         Long farmId,
+                         BigDecimal totalAmount,
+                         String status,
+                         LocalDateTime createdAt) {
+        this.orderId = orderId;
+        this.totalAmount = totalAmount;
+        this.status = status;
+        this.createdAt = createdAt;
+    }
+
+    public OrderResponse(Long orderId,
                             BigDecimal totalAmount,
                             String status,
                             LocalDateTime createdAt) {
@@ -18,6 +31,15 @@ public class OrderResponse {
         this.totalAmount = totalAmount;
         this.status = status;
         this.createdAt = createdAt;
+    }
+
+    public static OrderResponse fromEntity(Order order) {
+        return new OrderResponse(
+                order.getId(),
+                order.getTotalAmount(),
+                order.getStatus(),
+                order.getCreatedAt()
+        );
     }
 
     public Long getOrderId() {

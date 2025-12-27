@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 
 @Service
@@ -73,5 +74,43 @@ public class OrderService implements IOrderService {
             savedOrder.getStatus(),
             savedOrder.getCreatedAt()
         );
+    }
+    // 1️⃣ Farm xem danh sách đơn
+    @Override
+    public List<OrderResponse> getOrdersByFarm(Long farmId) {
+        return orderRepository.findOrdersByFarmId(farmId)
+                .stream()
+                .map(OrderResponse::fromEntity)
+                .toList();
+    }
+
+    // 2️⃣ Chấp nhận đơn
+    @Override
+    @Transactional
+    public OrderResponse confirmOrder(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+
+        if (!order.getStatus().equals("CREATED")) {
+            throw new RuntimeException("Only CREATED orders can be confirmed");
+        }
+
+        order.setStatus("CONFIRMED");
+        return OrderResponse.fromEntity(orderRepository.save(order));
+    }
+
+    // 3️⃣ Từ chối đơn
+    @Override
+    @Transactional
+    public OrderResponse rejectOrder(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+
+        if (!order.getStatus().equals("CREATED")) {
+            throw new RuntimeException("Only CREATED orders can be rejected");
+        }
+
+        order.setStatus("REJECTED");
+        return OrderResponse.fromEntity(orderRepository.save(order));
     }
 }
