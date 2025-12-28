@@ -41,4 +41,14 @@ public class LogisticController {
                                                  @RequestParam String status) {
         return ResponseEntity.ok(shipmentService.updateStatus(shipmentId, status));
     }
+    @GetMapping("/shipments/{id}")
+    public ResponseEntity<Shipment> getShipmentDetail(@PathVariable Long id) {
+        return ResponseEntity.ok(shipmentService.getShipmentDetail(id));
+    }
+
+    // API 2: Xem danh sách các đơn hàng của một tài xế (Lịch sử chạy)
+    @GetMapping("/driver/{driverId}/shipments")
+    public ResponseEntity<List<Shipment>> getShipmentsByDriver(@PathVariable Long driverId) {
+        return ResponseEntity.ok(shipmentService.getShipmentsByDriver(driverId));
+    }
 }

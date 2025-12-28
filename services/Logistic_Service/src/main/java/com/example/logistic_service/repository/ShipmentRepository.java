@@ -12,5 +12,8 @@ public interface ShipmentRepository extends JpaRepository<Shipment, Long> {
 
     // Tìm theo trạng thái (ví dụ: tìm đơn đang PENDING để gán xe)
     List<Shipment> findByStatus(String status);
+
+    // Tìm các đơn đã hoàn thành của tài xế đó
+    List<Shipment> findByDriverIdAndStatus(Long driverId, String status);
 }
 

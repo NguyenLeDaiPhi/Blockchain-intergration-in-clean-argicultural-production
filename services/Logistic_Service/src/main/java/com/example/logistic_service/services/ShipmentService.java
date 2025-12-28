@@ -10,6 +10,7 @@ import com.example.logistic_service.repository.ShipmentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class ShipmentService {
@@ -66,5 +67,19 @@ public class ShipmentService {
         notificationProducer.sendStatusUpdate(event);
 
         return updatedShipment;
+    }
+    // 4. Chức năng xem chi tiết 1 chuyến hàng (theo ID)
+    public Shipment getShipmentDetail(Long shipmentId) {
+        return shipmentRepository.findById(shipmentId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy chuyến hàng với ID: " + shipmentId));
+    }
+
+    // 5. Chức năng xem lịch sử các chuyến hàng của Tài xế
+    public List<Shipment> getShipmentsByDriver(Long driverId) {
+        // Kiểm tra xem tài xế có tồn tại không (nếu cần kỹ hơn)
+        if (!driverRepository.existsById(driverId)) {
+            throw new RuntimeException("Tài xế không tồn tại!");
+        }
+        return shipmentRepository.findByDriverId(driverId);
     }
 }
