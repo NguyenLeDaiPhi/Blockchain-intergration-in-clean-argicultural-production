@@ -1,0 +1,31 @@
+server:
+  port: 8082
+
+spring:
+  datasource:
+    # SỬA: Cổng 3307 (Docker) và thêm tự động tạo DB
+    url: jdbc:mysql://localhost:3307/bicap_blockchain_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: root  # SỬA: Mật khẩu mặc định của Docker
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  
+  # SỬA: Cấu hình RabbitMQ khớp với Farm Service
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+
+# SỬA: Định nghĩa tên Queue khớp với Farm Service
+bicap:
+  rabbitmq:
+    queue:
+      request: farm_request_queue
+      response: farm_response_queue
+    exchange: bicap_exchange
+    routing-key:
+      response: bicap_routing_key_response

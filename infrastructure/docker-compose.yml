@@ -2,10 +2,10 @@ version: '3.8'
 
 networks:
   bicap-network:
-    external: true
+    external: true  # Quan trọng: Mạng này sẽ nối các service với nhau
 
 services:
-  # === 1. MySQL Database ===
+  # === 1. MySQL Database (Farm) ===
   bicap-mysql:
     image: mysql:8.0
     container_name: bicap-mysql
@@ -18,9 +18,9 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
-      - bicap-network  # Sửa: Thêm vào mạng chung để các service khác nhìn thấy
+      - bicap-network
 
-  # === 2. Rabbit MQ ===
+  # === 2. RabbitMQ ===
   rabbitmq:
     image: rabbitmq:3-management
     container_name: bicap-rabbitmq
@@ -31,7 +31,7 @@ services:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
     networks:
-      - bicap-network # Sửa: Dùng chung mạng bicap-network thay vì kong-net
+      - bicap-network
 
   # === 3. Database cho Kong ===
   kong-database:
@@ -51,7 +51,7 @@ services:
       timeout: 5s
       retries: 5
 
-  # === 4. Kong Gateway Migration ===
+  # === 4. Kong Gateway Migration (Chạy 1 lần rồi tắt) ===
   kong-migration:
     image: kong:latest
     networks:
