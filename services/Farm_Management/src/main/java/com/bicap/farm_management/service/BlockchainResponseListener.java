@@ -11,16 +11,27 @@ public class BlockchainResponseListener {
     @Autowired
     private ProductionBatchService batchService;
 
-    // Lắng nghe hàng đợi phản hồi (Lấy tên từ application.properties)
+    @Autowired
+    private FarmingProcessService processService; // ✅ Đã thêm service này vào
+
+    // Chỉ giữ lại DUY NHẤT 1 hàm lắng nghe thôi
     @RabbitListener(queues = "${bicap.rabbitmq.queue.response}")
     public void receiveBlockchainResponse(BlockchainResult result) {
         System.out.println("📩 [RECV] Nhận phản hồi từ Blockchain: " + result);
 
         if (result.isSuccess()) {
-            // Nếu là loại BATCH thì cập nhật bảng ProductionBatch
-            if ("BATCH".equals(result.getResourceType())) {
-                Long batchId = Long.valueOf(result.getResourceId());
-                batchService.updateBlockchainStatus(batchId, result.getTransactionId());
+            try {
+                Long id = Long.valueOf(result.getResourceId());
+
+                // Logic phân luồng: Cái nào thì gọi service đó
+                if ("BATCH".equals(result.getResourceType())) {
+                    batchService.updateBlockchainStatus(id, result.getTransactionId());
+                } 
+                else if ("PROCESS".equals(result.getResourceType())) {
+                    processService.updateBlockchainStatus(id, result.getTransactionId());
+                }
+            } catch (NumberFormatException e) {
+                System.err.println("❌ Lỗi ID không hợp lệ: " + result.getResourceId());
             }
         } else {
             System.err.println("❌ Blockchain báo lỗi: " + result.getErrorMessage());
