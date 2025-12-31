@@ -4,6 +4,7 @@ require('dotenv').config({ path: path.resolve(__dirname, '..', 'config', '.env')
 const { serialize } = require('cookie');
 const jwt = require('jsonwebtoken');
 const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL;
+const AUTH_SERVICE_URL_UPDATE = process.env.AUTH_SERVICE_URL_UPDATE;
 
 console.log('AUTH_SERVICE_URL', AUTH_SERVICE_URL);
 
@@ -13,6 +14,7 @@ const APPLICATION_ROLE = "ROLE_FARMMANAGER";
 const express = require('express');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
+const profileRoutes = require('./profile');
 
 const app = express();
 const port = 3002;
@@ -25,7 +27,13 @@ const JWT_SECRET = Buffer.from(JWT_SECRET_STRING, 'base64');
 app.set("views", path.join(__dirname, "..", "front-end", "template"));
 app.set('view engine', "ejs");
 
+app.use(express.json({ limit: '10mb'}));
+app.use(express.urlencoded({ extended: true, limit: '10mb'}));
 app.use(express.static(path.join(__dirname, "..","front-end")));
+app.use('/assets', express.static(path.join(__dirname, "..", "assets")));
+app.use('/src', express.static(path.join(__dirname)));
+app.use(express.static('public')); // Serve uploads
+app.use(bodyParser.json());
 app.use(bodyParser.urlencoded( { extended: false }));
 app.use(cookieParser());
 
@@ -94,11 +102,13 @@ app.post('/login', async (req, res) => {
         const responseText = await apiResponse.text();
 
         if (!apiResponse.ok) {
-            console.log('Login failed from API:', responseText);
+            console.error(`Login failed from API. Status: ${apiResponse.status} ${apiResponse.statusText}. URL: ${AUTH_SERVICE_URL}/login. Response: ${responseText}`);
             return res.status(apiResponse.status).render('login', { error: responseText || 'Invalid credentials.' });
         }
     
         const accessToken = responseText;
+        
+        console.log('Login success - Token:', accessToken.substring(0, 20) + '...'); // Debug
         
         const decodedToken = jwt.verify(accessToken, JWT_SECRET); 
         
@@ -128,7 +138,7 @@ app.post('/login', async (req, res) => {
 });
 
 app.get('/register', (req, res) => {
-    res.render('register');
+    res.render('register', { error: null });
 });
 
 app.post('/register', async (req, res) => {
@@ -153,12 +163,12 @@ app.post('/register', async (req, res) => {
         if (apiResponse.ok) {
             res.redirect('/login');
         } else {
-            return res.status(apiResponse.status).send(data.message || 'Registration failed.');
+            return res.status(apiResponse.status).render('register', { error: data.message || 'Registration failed.' });
         }
 
     } catch (error) {
         console.error('Registration Error:', error);
-        return res.status(503).send('Service unavailable.');
+        return res.status(503).render('register', { error: 'Service unavailable.' });
     }
 });
 
@@ -172,10 +182,35 @@ app.get('/dashboard', requireAuth, (req, res) => {
     });
 });
 
+// Use profile routes
+app.use('/', profileRoutes(requireAuth));
+
 app.post('/logout', (req, res) => {
     clearAuthCookie(res);
     res.redirect('/');
 });
+
+// Global error handler (JSON only)
+app.use((err, req, res, next) => {
+    console.error('Global Error:', err);
+    const status = err.status || 500;
+    res.status(status).json({
+        error: 'Internal Server Error',
+        message: err.message,
+        ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+    });
+});
+
+app.use((err, req, res, next) => {
+    if (err.type === 'entity.too.large') {
+        return res.status(413).json({
+            error: 'File too large', 
+            message: 'The uploaded image is too big. Please use a smaller file (max 10MB).',
+            maxSize: '10MB'
+        });
+        next(err);
+    }
+})
 
 app.listen(port, () => {
     console.log(`Farm Management web app started on http://localhost:${port}`);
