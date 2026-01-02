@@ -1,11 +1,19 @@
 package com.bicap.trading_order_service.service;
 
+import java.util.List;
+
 import com.bicap.trading_order_service.dto.CreateOrderRequest;
-import com.bicap.trading_order_service.entity.Order;
+import com.bicap.trading_order_service.dto.OrderResponse;
 
 public interface IOrderService {
 
-    Order createOrder(CreateOrderRequest request);
+    OrderResponse createOrder(CreateOrderRequest request);
 
-    Order completeOrder(Long orderId);
+    OrderResponse completeOrder(Long orderId);
+    
+    List<OrderResponse> getOrdersByFarm(Long farmId);
+
+    OrderResponse confirmOrder(Long orderId);
+
+    OrderResponse rejectOrder(Long orderId);
 }

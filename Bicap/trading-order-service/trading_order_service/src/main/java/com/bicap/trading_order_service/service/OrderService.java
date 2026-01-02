@@ -3,6 +3,7 @@ package com.bicap.trading_order_service.service;
 import com.bicap.trading_order_service.config.RabbitMQConfig;
 import com.bicap.trading_order_service.dto.CreateOrderRequest;
 import com.bicap.trading_order_service.dto.OrderItemRequest;
+import com.bicap.trading_order_service.dto.OrderResponse;
 import com.bicap.trading_order_service.entity.MarketplaceProduct;
 import com.bicap.trading_order_service.entity.Order;
 import com.bicap.trading_order_service.entity.OrderItem;
@@ -10,7 +11,6 @@ import com.bicap.trading_order_service.event.OrderCompletedEvent;
 import com.bicap.trading_order_service.repository.MarketplaceProductRepository;
 import com.bicap.trading_order_service.repository.OrderItemRepository;
 import com.bicap.trading_order_service.repository.OrderRepository;
-
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,10 +27,12 @@ public class OrderService implements IOrderService {
     private final MarketplaceProductRepository productRepository;
     private final RabbitTemplate rabbitTemplate;
 
-    public OrderService(OrderRepository orderRepository,
-                        OrderItemRepository orderItemRepository,
-                        MarketplaceProductRepository productRepository,
-                        RabbitTemplate rabbitTemplate) {
+    public OrderService(
+            OrderRepository orderRepository,
+            OrderItemRepository orderItemRepository,
+            MarketplaceProductRepository productRepository,
+            RabbitTemplate rabbitTemplate
+    ) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
         this.productRepository = productRepository;
@@ -38,21 +40,21 @@ public class OrderService implements IOrderService {
     }
 
     /**
-     * Retailer tạo đơn hàng
+     * 1️⃣ Retailer tạo đơn hàng
      */
     @Override
     @Transactional
-    public Order createOrder(CreateOrderRequest request) {
+    public OrderResponse createOrder(CreateOrderRequest request) {
 
         Order order = new Order();
         order.setBuyerId(request.getBuyerId());
         order.setStatus("CREATED");
         order.setTotalAmount(BigDecimal.ZERO);
 
-        // Lưu order trước để có order_id
+        // Save order trước để có ID
         order = orderRepository.save(order);
 
-        BigDecimal total = BigDecimal.ZERO;
+        BigDecimal totalAmount = BigDecimal.ZERO;
         List<OrderItem> items = new ArrayList<>();
 
         for (OrderItemRequest itemReq : request.getItems()) {
@@ -65,55 +67,102 @@ public class OrderService implements IOrderService {
             item.setOrder(order);
             item.setProductId(product.getId());
             item.setQuantity(itemReq.getQuantity());
+            item.setUnitPrice(product.getPrice()); // snapshot giá
 
-            // Snapshot giá tại thời điểm mua
-            item.setUnitPrice(product.getPrice());
+            BigDecimal itemTotal =
+                    product.getPrice().multiply(BigDecimal.valueOf(itemReq.getQuantity()));
 
-            total = total.add(
-                    product.getPrice()
-                           .multiply(BigDecimal.valueOf(itemReq.getQuantity()))
-            );
-
+            totalAmount = totalAmount.add(itemTotal);
             items.add(item);
         }
 
         orderItemRepository.saveAll(items);
+        order.setTotalAmount(totalAmount);
 
-        order.setTotalAmount(total);
-        return orderRepository.save(order);
+        Order savedOrder = orderRepository.save(order);
+
+        return OrderResponse.fromEntity(savedOrder);
     }
 
     /**
-     * Retailer hoàn tất đơn hàng
+     * 2️⃣ Retailer hoàn tất đơn hàng
      * → Update trạng thái
-     * → Publish event cho Blockchain Adapter
+     * → Publish event RabbitMQ
      */
-   @Override
-@Transactional
-public Order completeOrder(Long orderId) {
+    @Override
+    @Transactional
+    public OrderResponse completeOrder(Long orderId) {
 
-    Order order = orderRepository.findById(orderId)
-            .orElseThrow(() -> new RuntimeException("Order not found"));
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
 
-    order.setStatus("COMPLETED");
-    order = orderRepository.save(order);
+        order.setStatus("COMPLETED");
+        order = orderRepository.save(order);
 
-    try {
-        OrderCompletedEvent event = new OrderCompletedEvent(
-                order.getId(),
-                order.getBuyerId(),
-                order.getTotalAmount()
-        );
+        // Publish event (không cho fail business)
+        try {
+            OrderCompletedEvent event = new OrderCompletedEvent(
+                    order.getId(),
+                    order.getBuyerId(),
+                    order.getTotalAmount()
+            );
 
-        rabbitTemplate.convertAndSend(
-                RabbitMQConfig.ORDER_EXCHANGE,
-                RabbitMQConfig.ORDER_COMPLETED_KEY,
-                event
-        );
-    } catch (Exception e) {
-        System.out.println("RabbitMQ publish skipped: " + e.getMessage());
+            rabbitTemplate.convertAndSend(
+                    RabbitMQConfig.ORDER_EXCHANGE,
+                    RabbitMQConfig.ORDER_COMPLETED_KEY,
+                    event
+            );
+        } catch (Exception e) {
+            System.err.println("⚠️ RabbitMQ publish failed: " + e.getMessage());
+        }
+
+        return OrderResponse.fromEntity(order);
     }
 
-    return order;
-}
+    /**
+     * 3️⃣ Farm xem danh sách đơn
+     */
+    @Override
+    public List<OrderResponse> getOrdersByFarm(Long farmId) {
+        return orderRepository.findOrdersByFarmId(farmId)
+                .stream()
+                .map(OrderResponse::fromEntity)
+                .toList();
+    }
+
+    /**
+     * 4️⃣ Farm xác nhận đơn
+     */
+    @Override
+    @Transactional
+    public OrderResponse confirmOrder(Long orderId) {
+
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+
+        if (!"CREATED".equals(order.getStatus())) {
+            throw new RuntimeException("Only CREATED orders can be confirmed");
+        }
+
+        order.setStatus("CONFIRMED");
+        return OrderResponse.fromEntity(orderRepository.save(order));
+    }
+
+    /**
+     * 5️⃣ Farm từ chối đơn
+     */
+    @Override
+    @Transactional
+    public OrderResponse rejectOrder(Long orderId) {
+
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+
+        if (!"CREATED".equals(order.getStatus())) {
+            throw new RuntimeException("Only CREATED orders can be rejected");
+        }
+
+        order.setStatus("REJECTED");
+        return OrderResponse.fromEntity(orderRepository.save(order));
+    }
 }
