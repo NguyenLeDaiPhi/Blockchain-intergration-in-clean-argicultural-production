@@ -2,6 +2,8 @@ package com.bicap.trading_order_service.controller;
 
 import com.bicap.trading_order_service.dto.CreateOrderRequest;
 import com.bicap.trading_order_service.dto.OrderResponse;
+import com.bicap.trading_order_service.security.annotation.CurrentUser;
+import com.bicap.trading_order_service.security.jwt.JwtUser;
 import com.bicap.trading_order_service.service.IOrderService;
 import com.bicap.trading_order_service.service.OrderService;
 
@@ -21,6 +23,14 @@ public class OrderController {
     }
 
     /**
+     * TEST JWT – lấy info user hiện tại
+     */
+    @GetMapping("/me")
+    public ResponseEntity<?> getMyOrders(@CurrentUser JwtUser user) {
+        return ResponseEntity.ok(user);
+    }
+
+    /**
      * Retailer tạo đơn hàng
      */
     @PostMapping
@@ -31,38 +41,37 @@ public class OrderController {
     }
 
     /**
-     * Hoàn tất đơn hàng (sau khi giao xong)
+     * Farm xem đơn theo farmId
      */
-    @PutMapping("/{orderId}/complete")
-    public ResponseEntity<OrderResponse> completeOrder(@PathVariable Long orderId) {
-        OrderResponse response = orderService.completeOrder(orderId);
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping
+    @GetMapping("/by-farm/{farmId}")
     public List<OrderResponse> getOrdersByFarm(
-            @RequestParam Long farmId
+            @PathVariable Long farmId
     ) {
         return orderService.getOrdersByFarm(farmId);
     }
 
     /**
-     * Farm xác nhận đơn hàng
+     * Hoàn tất đơn hàng
+     */
+    @PutMapping("/{orderId}/complete")
+    public ResponseEntity<OrderResponse> completeOrder(@PathVariable Long orderId) {
+        return ResponseEntity.ok(orderService.completeOrder(orderId));
+    }
+
+    /**
+     * Farm xác nhận đơn
      */
     @PutMapping("/{orderId}/confirm")
-    public OrderResponse confirmOrder(
-            @PathVariable Long orderId
-    ) {
+    public OrderResponse confirmOrder(@PathVariable Long orderId) {
         return orderService.confirmOrder(orderId);
     }
 
     /**
-     * Farm từ chối đơn hàng
+     * Farm từ chối đơn
      */
     @PutMapping("/{orderId}/reject")
-    public OrderResponse rejectOrder(
-            @PathVariable Long orderId
-    ) {
+    public OrderResponse rejectOrder(@PathVariable Long orderId) {
         return orderService.rejectOrder(orderId);
     }
 }
+

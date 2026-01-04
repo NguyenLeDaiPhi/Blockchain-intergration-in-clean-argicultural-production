@@ -3,9 +3,12 @@ package com.bicap.trading_order_service.controller;
 import com.bicap.trading_order_service.dto.CreateMarketplaceProductRequest;
 import com.bicap.trading_order_service.dto.ProductResponse;
 import com.bicap.trading_order_service.entity.MarketplaceProduct;
+import com.bicap.trading_order_service.security.annotation.CurrentUser;
+import com.bicap.trading_order_service.security.jwt.JwtUser;
 import com.bicap.trading_order_service.service.IMarketplaceProductService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,7 +23,13 @@ public class MarketplaceProductController {
         this.service = service;
     }
 
-    // FARM
+    // ✅ TEST JWT
+    @GetMapping("/me")
+    public ResponseEntity<?> getCurrentUser(@CurrentUser JwtUser user) {
+        return ResponseEntity.ok(user);
+    }
+
+    // FARM – tạo sản phẩm
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public MarketplaceProduct createProduct(
@@ -34,7 +43,7 @@ public class MarketplaceProductController {
         return service.getApprovedProducts();
     }
 
-    // RETAILER – chi tiết + giá
+    // RETAILER – chi tiết
     @GetMapping("/{id}")
     public ProductResponse getProductDetail(@PathVariable Long id) {
         return service.getProductDetail(id);

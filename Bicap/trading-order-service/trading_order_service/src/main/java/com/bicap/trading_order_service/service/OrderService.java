@@ -16,14 +16,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
 public class OrderService implements IOrderService {
 
     private final OrderRepository orderRepository;
-    private final OrderItemRepository orderItemRepository;
     private final MarketplaceProductRepository productRepository;
     private final RabbitTemplate rabbitTemplate;
 
@@ -34,7 +32,6 @@ public class OrderService implements IOrderService {
             RabbitTemplate rabbitTemplate
     ) {
         this.orderRepository = orderRepository;
-        this.orderItemRepository = orderItemRepository;
         this.productRepository = productRepository;
         this.rabbitTemplate = rabbitTemplate;
     }
@@ -43,46 +40,41 @@ public class OrderService implements IOrderService {
      * 1️⃣ Retailer tạo đơn hàng
      */
     @Override
-    @Transactional
-    public OrderResponse createOrder(CreateOrderRequest request) {
+@Transactional
+public OrderResponse createOrder(CreateOrderRequest request) {
 
-        Order order = new Order();
-        order.setBuyerId(request.getBuyerId());
-        order.setStatus("CREATED");
-        order.setTotalAmount(BigDecimal.ZERO);
+    Order order = new Order();
+    order.setBuyerId(request.getBuyerId());
+    order.setStatus("CREATED");
 
-        // Save order trước để có ID
-        order = orderRepository.save(order);
+    BigDecimal totalAmount = BigDecimal.ZERO;
 
-        BigDecimal totalAmount = BigDecimal.ZERO;
-        List<OrderItem> items = new ArrayList<>();
+    for (OrderItemRequest itemReq : request.getItems()) {
 
-        for (OrderItemRequest itemReq : request.getItems()) {
+        MarketplaceProduct product = productRepository
+                .findById(itemReq.getProductId())
+                .orElseThrow(() -> new RuntimeException("Product not found"));
 
-            MarketplaceProduct product = productRepository
-                    .findById(itemReq.getProductId())
-                    .orElseThrow(() -> new RuntimeException("Product not found"));
+        OrderItem item = new OrderItem();
+        item.setProductId(product.getId());
+        item.setQuantity(itemReq.getQuantity());
+        item.setUnitPrice(product.getPrice());
 
-            OrderItem item = new OrderItem();
-            item.setOrder(order);
-            item.setProductId(product.getId());
-            item.setQuantity(itemReq.getQuantity());
-            item.setUnitPrice(product.getPrice()); // snapshot giá
+        BigDecimal itemTotal =
+                product.getPrice().multiply(BigDecimal.valueOf(itemReq.getQuantity()));
+        totalAmount = totalAmount.add(itemTotal);
 
-            BigDecimal itemTotal =
-                    product.getPrice().multiply(BigDecimal.valueOf(itemReq.getQuantity()));
-
-            totalAmount = totalAmount.add(itemTotal);
-            items.add(item);
-        }
-
-        orderItemRepository.saveAll(items);
-        order.setTotalAmount(totalAmount);
-
-        Order savedOrder = orderRepository.save(order);
-
-        return OrderResponse.fromEntity(savedOrder);
+        // ⭐ QUAN TRỌNG
+        order.addItem(item);
     }
+
+    order.setTotalAmount(totalAmount);
+
+    Order savedOrder = orderRepository.save(order);
+
+    return OrderResponse.fromEntity(savedOrder);
+    }
+
 
     /**
      * 2️⃣ Retailer hoàn tất đơn hàng
