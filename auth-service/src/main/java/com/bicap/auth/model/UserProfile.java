@@ -1,18 +1,24 @@
 package com.bicap.auth.model;
 
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Lob;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
@@ -26,10 +32,6 @@ public class UserProfile {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Convert(converter = StringListConverter.class)
-    @Column(name = "business_license", nullable = true)
-    private List<String> businessLicense;
-
     @Column(name = "address", nullable = true)
     private String address;
 
@@ -40,7 +42,11 @@ public class UserProfile {
     @Transient
     private String avatarBase64;
 
-    @JsonIgnore
+    @JsonManagedReference  // Serialize this side
+    @OneToMany(mappedBy = "userProfile", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<BusinessLicense> businessLicenses = new ArrayList<>();
+
+    @JsonIgnore  // Already there, good—prevents User → UserProfile → User loop
     @OneToOne
     @JoinColumn(name="user_id", nullable = false, unique = true)
     private User user;
