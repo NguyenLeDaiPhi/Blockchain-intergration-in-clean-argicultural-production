@@ -17,12 +17,24 @@ services:
       - ./database/auth-database/bicap_auth_db_roles.sql:/docker-entrypoint-initdb.d/01_roles.sql
       - ./database/auth-database/bicap_auth_db_users.sql:/docker-entrypoint-initdb.d/02_users.sql
       - ./database/auth-database/bicap_auth_db_user_roles.sql:/docker-entrypoint-initdb.d/03_user_roles.sql
-      - ./database/auth-database/bicap_auth_db_user_profiles.sql:/docker-entrypoint-initdb.d/04_profiles_roles.sql
+      - ./database/auth-database/bicap_auth_db_user_profiles.sql:/docker-entrypoint-initdb.d/04_user_profiles.sql
     healthcheck:
       test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
       interval: 10s
       timeout: 5s
       retries: 5
+
+  bicap-message-queue:
+    image: rabbitmq:3-management
+    container_name: bicap-message-queue
+    environment:
+      - RABBITMQ_DEFAULT_USER=root
+      - RABBITMQ_DEFAULT_PASS=0862264719Phi
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - bicap-global-net
 
   auth-service:
     build:
@@ -31,11 +43,16 @@ services:
     depends_on:
       auth-db:
         condition: service_healthy
+      bicap-message-queue:
+        condition: service_started
     environment:
       - spring.datasource.url=jdbc:mysql://auth-db:3306/auth_db
       - spring.datasource.username=root
       - spring.datasource.password=0862264719Phi
       - spring.jpa.database-platform=org.hibernate.dialect.MySQLDialect
+      - SPRING_RABBITMQ_HOST=bicap-message-queue
+      - SPRING_RABBITMQ_USERNAME=root
+      - SPRING_RABBITMQ_PASSWORD=0862264719Phi
     ports:
       - "8080:8080"
     networks:
