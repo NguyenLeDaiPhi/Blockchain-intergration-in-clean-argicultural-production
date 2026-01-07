@@ -24,7 +24,7 @@ public class RabbitMQConfig {
     }
 
     @Bean
-    public RabbitTemplate rabbitTemplate(
+    public RabbitTemplate rabbitTemplate( 
             ConnectionFactory connectionFactory,
             Jackson2JsonMessageConverter converter) {
 
