@@ -1,5 +1,6 @@
 package com.bicap.trading_order_service.security;
 
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -13,7 +14,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -33,37 +33,39 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String header = request.getHeader("Authorization");
 
-        // ✅ Không có token → bỏ qua
         if (header == null || !header.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
         String token = header.substring(7);
+        Claims claims = jwtUtils.parseClaims(token);
 
-        // ✅ Token không hợp lệ / hết hạn → bỏ qua
-        if (!jwtUtils.validateToken(token)) {
+        if (claims == null) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        String username = jwtUtils.getUsername(token);
-        String email = jwtUtils.getEmail(token);
-        List<String> roles = jwtUtils.getRoles(token);
+        String username = claims.getSubject();
+        String email = claims.get("email", String.class);
 
-        // ❌ Không có role → bỏ qua
-        if (roles == null || roles.isEmpty()) {
+        // 🔥 QUAN TRỌNG: roles là STRING
+        String rolesStr = claims.get("roles", String.class);
+
+        if (rolesStr == null || rolesStr.isBlank()) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // ✅ Map roles → GrantedAuthority
+        // Tách role
         List<SimpleGrantedAuthority> authorities =
-                roles.stream()
-                        .map(SimpleGrantedAuthority::new)
-                        .collect(Collectors.toList());
+                List.of(new SimpleGrantedAuthority(rolesStr.trim()));
 
-        JwtUser jwtUser = new JwtUser(username, email, roles);
+        JwtUser jwtUser = new JwtUser(
+                username,
+                email,
+                List.of(rolesStr.trim())
+        );
 
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(

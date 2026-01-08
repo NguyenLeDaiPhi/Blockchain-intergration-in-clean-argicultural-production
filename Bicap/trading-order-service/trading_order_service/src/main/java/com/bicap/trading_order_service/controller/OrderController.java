@@ -25,9 +25,9 @@ public class OrderController {
         this.orderService = orderService;
     }
 
-    /**
-     * ✅ TEST JWT – kiểm tra token + role hiện tại
-     */
+    // =======================
+    // TEST JWT
+    // =======================
     @GetMapping("/me")
     public ResponseEntity<?> me() {
 
@@ -49,11 +49,10 @@ public class OrderController {
         );
     }
 
-    /**
-     * 🛒 Retailer tạo đơn hàng
-     * 👉 chỉ cần ROLE_RETAILER
-     */
-    @PreAuthorize("hasRole('RETAILER')")
+    // =======================
+    // CREATE ORDER
+    // =======================
+    @PreAuthorize("hasAuthority('ROLE_RETAILER')")
     @PostMapping
     public ResponseEntity<OrderResponse> createOrder(
             @RequestBody CreateOrderRequest request
@@ -61,10 +60,10 @@ public class OrderController {
         return ResponseEntity.ok(orderService.createOrder(request));
     }
 
-    /**
-     * 🌾 Farm Manager xem đơn theo farmId
-     */
-    @PreAuthorize("hasRole('FARMMANAGER')")
+    // =======================
+    // FARM MANAGER
+    // =======================
+    @PreAuthorize("hasAuthority('ROLE_FARMMANAGER')")
     @GetMapping("/by-farm/{farmId}")
     public List<OrderResponse> getOrdersByFarm(
             @PathVariable Long farmId
@@ -72,21 +71,7 @@ public class OrderController {
         return orderService.getOrdersByFarm(farmId);
     }
 
-    /**
-     * 🚚 Shipping Manager hoàn tất đơn hàng
-     */
-    @PreAuthorize("hasRole('SHIPPINGMANAGER')")
-    @PutMapping("/{orderId}/complete")
-    public ResponseEntity<OrderResponse> completeOrder(
-            @PathVariable Long orderId
-    ) {
-        return ResponseEntity.ok(orderService.completeOrder(orderId));
-    }
-
-    /**
-     * 🌾 Farm Manager xác nhận đơn
-     */
-    @PreAuthorize("hasRole('FARMMANAGER')")
+    @PreAuthorize("hasAuthority('ROLE_FARMMANAGER')")
     @PutMapping("/{orderId}/confirm")
     public OrderResponse confirmOrder(
             @PathVariable Long orderId
@@ -94,10 +79,7 @@ public class OrderController {
         return orderService.confirmOrder(orderId);
     }
 
-    /**
-     * 🌾 Farm Manager từ chối đơn
-     */
-    @PreAuthorize("hasRole('FARMMANAGER')")
+    @PreAuthorize("hasAuthority('ROLE_FARMMANAGER')")
     @PutMapping("/{orderId}/reject")
     public OrderResponse rejectOrder(
             @PathVariable Long orderId
@@ -105,9 +87,18 @@ public class OrderController {
         return orderService.rejectOrder(orderId);
     }
 
-    /**
-     * 🔹 DTO nhỏ để test JWT
-     */
+    // =======================
+    // SHIPPING
+    // =======================
+    @PreAuthorize("hasAuthority('ROLE_SHIPPINGMANAGER')")
+    @PutMapping("/{orderId}/complete")
+    public ResponseEntity<OrderResponse> completeOrder(
+            @PathVariable Long orderId
+    ) {
+        return ResponseEntity.ok(orderService.completeOrder(orderId));
+    }
+
+    // =======================
     static class JwtTestResponse {
         public String username;
         public List<String> roles;
