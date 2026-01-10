@@ -54,11 +54,7 @@ public class BlockchainService implements IBlockchainService {
 
         recordRepository.save(record);
 
-<<<<<<< HEAD
-        // 3. Ghi log truy vết
-=======
         // 4. Ghi log truy vết
->>>>>>> Farm-product-service
         TraceLog log = new TraceLog();
         log.setObjectType("BATCH");
         log.setObjectId(batchId);

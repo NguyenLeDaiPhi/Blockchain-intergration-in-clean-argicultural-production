@@ -10,30 +10,48 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/environment-metrics")
 @CrossOrigin(origins = "*")
-@Tag(name = "Environment Metrics", description = "APIs for managing farm environment metrics")
 public class EnvironmentMetricController {
     
-    private final EnvironmentMetricService metricService;
+    @Autowired
+    private EnvironmentMetricService metricService;
 
-    public EnvironmentMetricController(EnvironmentMetricService metricService) {
-        this.metricService = metricService;
-    }
-
-    @Operation(summary = "Add a new metric manually", description = "Records a specific environment metric (e.g., Soil Moisture) for a batch.")
+    // 1. Thêm chỉ số thủ công
     @PostMapping("/batch/{batchId}")
-    public EnvironmentMetric addMetric(@PathVariable Long batchId, @RequestBody EnvironmentMetric metric) {
-        return metricService.addMetric(batchId, metric);
+    public ResponseEntity<?> addMetric(
+            @PathVariable Long batchId, 
+            @RequestBody EnvironmentMetric metric,
+            HttpServletRequest request
+    ) {
+        try {
+            Long userId = (Long) request.getAttribute("userId");
+            if (userId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User ID not found");
+
+            EnvironmentMetric saved = metricService.addMetric(batchId, metric, userId);
+            return ResponseEntity.ok(saved);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
-    @Operation(summary = "Get metrics by batch", description = "Retrieves all recorded metrics for a specific production batch.")
     @GetMapping("/batch/{batchId}")
     public List<EnvironmentMetric> getMetricsByBatch(@PathVariable Long batchId) {
         return metricService.getMetricsByBatch(batchId);
     }
 
-    @Operation(summary = "Sync weather from external API", description = "Fetches current weather (Temp, Humidity) and saves it as metrics for the batch.")
+    // 2. Đồng bộ thời tiết
     @PostMapping("/sync-weather/{batchId}")
-    public List<EnvironmentMetric> syncWeather(@PathVariable Long batchId) {
-        return metricService.syncWeatherFromApi(batchId);
+    public ResponseEntity<?> syncWeather(
+            @PathVariable Long batchId,
+            HttpServletRequest request
+    ) {
+        try {
+            Long userId = (Long) request.getAttribute("userId");
+            if (userId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User ID not found");
+
+            List<EnvironmentMetric> result = metricService.syncWeatherFromApi(batchId, userId);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }

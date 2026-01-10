@@ -19,83 +19,92 @@ import java.util.List;
 
 @Service
 public class EnvironmentMetricService {
-    private static final Logger logger = LoggerFactory.getLogger(EnvironmentMetricService.class);
+        private static final Logger logger = LoggerFactory.getLogger(EnvironmentMetricService.class);
 
-    @Autowired
-    private EnvironmentMetricRepository metricRepository;
-    
-    @Autowired
-    private ProductionBatchRepository batchRepository;
+        @Autowired
+        private EnvironmentMetricRepository metricRepository;
+        
+        @Autowired
+        private ProductionBatchRepository batchRepository;
 
-    @Autowired
-    private RestTemplate restTemplate;
+        @Autowired
+        private RestTemplate restTemplate;
 
-    @Value("${weather.api.key}") private String apiKey;
-    @Value("${weather.city}") private String city;
-    @Value("${weather.url}") private String apiUrl;
+        @Value("${weather.api.key}") private String apiKey;
+        @Value("${weather.city}") private String city;
+        @Value("${weather.url}") private String apiUrl;
 
-    public EnvironmentMetric addMetric(Long batchId, EnvironmentMetric metric) {
-        ProductionBatch batch = batchRepository.findById(batchId)
-            .orElseThrow(() -> new RuntimeException("Không tìm thấy Lô sản xuất ID: " + batchId));
-        metric.setProductionBatch(batch);
-        metric.setFarmId(batch.getFarm());
-        if (metric.getRecordedAt() == null) metric.setRecordedAt(LocalDateTime.now());
-        return metricRepository.save(metric);
-    }
-
-<<<<<<< HEAD:services/Farm_Management/src/main/java/com/bicap/farm_management/service/EnvironmentMetricService.java
-    // === SỬA LẠI HÀM NÀY: Trả về List và lưu 2 chỉ số ===
-=======
->>>>>>> 2a820501baad4b338ac3e1eab7efc4d529b6fe3f:services/farm-production-service/src/main/java/com/bicap/farm_management/service/EnvironmentMetricService.java
-    public List<EnvironmentMetric> syncWeatherFromApi(Long batchId) {
-        try {
+        // --- HÀM KIỂM TRA QUYỀN SỞ HỮU (Private) ---
+        private ProductionBatch checkBatchOwnership(Long batchId, Long userId) {
             ProductionBatch batch = batchRepository.findById(batchId)
-                .orElseThrow(() -> new RuntimeException("Lô sản xuất không tồn tại"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy Lô sản xuất ID: " + batchId));
+            
+            if (!batch.getFarm().getOwnerId().equals(userId)) {
+                throw new RuntimeException("Bạn không có quyền tác động vào dữ liệu môi trường của trang trại này!");
+            }
+            return batch;
+        }
 
-            String finalUrl = apiUrl.replace("{city}", city).replace("{key}", apiKey);
-            String response = restTemplate.getForObject(finalUrl, String.class);
+        // 1. Thêm chỉ số thủ công (SỬA: Thêm userId)
+        public EnvironmentMetric addMetric(Long batchId, EnvironmentMetric metric, Long userId) {
+            // Gọi hàm check quyền ở trên
+            ProductionBatch batch = checkBatchOwnership(batchId, userId);
 
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode root = mapper.readTree(response);
-            double temp = root.path("main").path("temp").asDouble();
-            double humidity = root.path("main").path("humidity").asDouble();
-            LocalDateTime now = LocalDateTime.now();
+            metric.setProductionBatch(batch);
+            metric.setFarmId(batch.getFarm());
+            if (metric.getRecordedAt() == null) metric.setRecordedAt(LocalDateTime.now());
+            return metricRepository.save(metric);
+        }
 
-            List<EnvironmentMetric> results = new ArrayList<>();
+        public List<EnvironmentMetric> syncWeatherFromApi(Long batchId, Long userId) {
+            try {
+                // Gọi hàm check quyền ở trên
+                ProductionBatch batch = checkBatchOwnership(batchId, userId);
 
-            // 1. Lưu Nhiệt độ
-            EnvironmentMetric t = new EnvironmentMetric();
-            t.setProductionBatch(batch);
-            t.setFarmId(batch.getFarm());
-            t.setMetricType("TEMPERATURE");
-            t.setValue(temp);
-            t.setUnit("Celsius");
-            t.setRecordedAt(now);
-            results.add(metricRepository.save(t));
+                String finalUrl = apiUrl.replace("{city}", city).replace("{key}", apiKey);
+                String response = restTemplate.getForObject(finalUrl, String.class);
 
-            // 2. Lưu Độ ẩm
-            EnvironmentMetric h = new EnvironmentMetric();
-            h.setProductionBatch(batch);
-            h.setFarmId(batch.getFarm());
-            h.setMetricType("HUMIDITY");
-            h.setValue(humidity);
-            h.setUnit("%");
-            h.setRecordedAt(now);
-            results.add(metricRepository.save(h));
+                ObjectMapper mapper = new ObjectMapper();
+                JsonNode root = mapper.readTree(response);
+                double temp = root.path("main").path("temp").asDouble();
+                double humidity = root.path("main").path("humidity").asDouble();
+                LocalDateTime now = LocalDateTime.now();
 
-            return results;
+                List<EnvironmentMetric> results = new ArrayList<>();
 
-        } catch (Exception e) {
-<<<<<<< HEAD:services/Farm_Management/src/main/java/com/bicap/farm_management/service/EnvironmentMetricService.java
-            e.printStackTrace(); // In lỗi ra console để debug
-=======
-            logger.error("Error syncing weather data for batch ID: {}", batchId, e);
->>>>>>> 2a820501baad4b338ac3e1eab7efc4d529b6fe3f:services/farm-production-service/src/main/java/com/bicap/farm_management/service/EnvironmentMetricService.java
-            throw new RuntimeException("Lỗi đồng bộ thời tiết: " + e.getMessage());
+                // Lưu Nhiệt độ
+                EnvironmentMetric t = new EnvironmentMetric();
+                t.setProductionBatch(batch);
+                t.setFarmId(batch.getFarm());
+                t.setMetricType("TEMPERATURE");
+                t.setValue(temp);
+                t.setUnit("Celsius");
+                t.setRecordedAt(now);
+                results.add(metricRepository.save(t));
+
+                // Lưu Độ ẩm
+                EnvironmentMetric h = new EnvironmentMetric();
+                h.setProductionBatch(batch);
+                h.setFarmId(batch.getFarm());
+                h.setMetricType("HUMIDITY");
+                h.setValue(humidity);
+                h.setUnit("%");
+                h.setRecordedAt(now);
+                results.add(metricRepository.save(h));
+
+                return results;
+
+            } catch (RuntimeException e) {
+                throw e; // Ném tiếp lỗi quyền sở hữu ra ngoài
+            } catch (Exception e) {
+                e.printStackTrace(); // In lỗi ra console để debug
+                logger.error("Error syncing weather data for batch ID: {}", batchId, e);
+                e.printStackTrace();
+                throw new RuntimeException("Lỗi đồng bộ thời tiết: " + e.getMessage());
+            }
+        }
+
+        public List<EnvironmentMetric> getMetricsByBatch(Long batchId) {
+            return metricRepository.findByProductionBatchId(batchId);
         }
     }
-
-    public List<EnvironmentMetric> getMetricsByBatch(Long batchId) {
-        return metricRepository.findByProductionBatchId(batchId);
-    }
-}
