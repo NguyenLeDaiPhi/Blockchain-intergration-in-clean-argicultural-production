@@ -1,9 +1,13 @@
-FROM openjdk:21-jdk-alpine
-VOLUME /tmp
-ARG JAVA_OPTS
-ENV JAVA_OPTS=$JAVA_OPTS
-COPY target/trading_order_service-0.0.1-SNAPSHOT.jar tradingorderservice.jar
+# Stage 1: Build the application
+FROM maven:3.9-eclipse-temurin-21 AS build
+WORKDIR /app
+COPY pom.xml .
+COPY src ./src
+RUN mvn clean package -DskipTests
+
+# Stage 2: Create the final image
+FROM eclipse-temurin:21-jre-ubi9-minimal
+WORKDIR /app
+COPY --from=build /app/target/trading_order_service-0.0.1-SNAPSHOT.jar app.jar
 EXPOSE 8081
-ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar tradingorderservice.jar"]
-# For Spring-Boot project, use the entrypoint below to reduce Tomcat startup time.
-#ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -jar tradingorderservice.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"]

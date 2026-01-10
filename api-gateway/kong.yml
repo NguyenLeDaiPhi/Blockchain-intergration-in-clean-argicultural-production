@@ -25,7 +25,11 @@ services:
           path: /var/log/kong/shipping-manager-web.log
 
   - name: farm-management-web
+<<<<<<< HEAD
     url: http://farm-management-web:3003
+=======
+    url: http://farm-management-web:3002
+>>>>>>> main
     plugins:
       - name: rate-limiting
         config:
@@ -56,6 +60,20 @@ services:
       - name: file-log
         config:
           path: /var/log/kong/retailer-web.log
+<<<<<<< HEAD
+=======
+  
+  - name: farm-production-service
+    url: http://farm-production-service:8081
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: file-log
+        config:
+          path: /var/log/kong/farm-production-service.log
+>>>>>>> main
 
 routes:
   # Auth API (login/register called by retailer-web via Kong)
@@ -133,6 +151,51 @@ routes:
         config:
           path: /var/log/kong/auth-service.log
 
+<<<<<<< HEAD
+=======
+  # Farm Production - Marketplace Products
+  - name: marketplace-products-farm-api
+    service: farm-production-service
+    paths:
+      - /api/marketplace-products
+    methods:
+      - GET
+      - POST
+      - PUT
+      - PATCH
+      - DELETE
+      - OPTIONS
+    strip_path: false
+    plugins:
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
+          headers: ["Content-Type", "Authorization"]
+          credentials: true
+
+  # Farm Production - Farming Seasons (aliased to production-batches)
+  - name: farming-seasons-api
+    service: farm-production-service
+    paths:
+      - /api/farming-seasons
+    methods:
+      - GET
+      - OPTIONS
+    strip_path: true
+    plugins:
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "OPTIONS"]
+          headers: ["Content-Type", "Authorization"]
+          credentials: true
+      - name: request-transformer
+        config:
+          replace:
+            uri: /api/production-batches
+
+>>>>>>> main
   # Public UI Routes (no JWT required)
   - name: retailer-public
     service: retailer-web
@@ -284,6 +347,13 @@ routes:
     hosts: ["localhost"]
     paths:
       - /dashboard
+<<<<<<< HEAD
+=======
+      - /product-management
+      - /profile
+      - /farm-info
+      - /farm-info/edit
+>>>>>>> main
     strip_path: false
     plugins:
       - name: request-transformer
@@ -353,4 +423,8 @@ consumers:
 plugins:
   - name: file-log
     config:
+<<<<<<< HEAD
       path: /var/log/kong/global.log
+=======
+      path: /var/log/kong/global.log
+>>>>>>> main
