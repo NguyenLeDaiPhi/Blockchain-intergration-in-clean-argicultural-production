@@ -6,6 +6,8 @@ import com.bicap.farm_management.repository.EnvironmentMetricRepository;
 import com.bicap.farm_management.repository.ProductionBatchRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -17,6 +19,8 @@ import java.util.List;
 
 @Service
 public class EnvironmentMetricService {
+    private static final Logger logger = LoggerFactory.getLogger(EnvironmentMetricService.class);
+
     @Autowired
     private EnvironmentMetricRepository metricRepository;
     
@@ -39,7 +43,10 @@ public class EnvironmentMetricService {
         return metricRepository.save(metric);
     }
 
+<<<<<<< HEAD:services/Farm_Management/src/main/java/com/bicap/farm_management/service/EnvironmentMetricService.java
     // === SỬA LẠI HÀM NÀY: Trả về List và lưu 2 chỉ số ===
+=======
+>>>>>>> 2a820501baad4b338ac3e1eab7efc4d529b6fe3f:services/farm-production-service/src/main/java/com/bicap/farm_management/service/EnvironmentMetricService.java
     public List<EnvironmentMetric> syncWeatherFromApi(Long batchId) {
         try {
             ProductionBatch batch = batchRepository.findById(batchId)
@@ -79,7 +86,11 @@ public class EnvironmentMetricService {
             return results;
 
         } catch (Exception e) {
+<<<<<<< HEAD:services/Farm_Management/src/main/java/com/bicap/farm_management/service/EnvironmentMetricService.java
             e.printStackTrace(); // In lỗi ra console để debug
+=======
+            logger.error("Error syncing weather data for batch ID: {}", batchId, e);
+>>>>>>> 2a820501baad4b338ac3e1eab7efc4d529b6fe3f:services/farm-production-service/src/main/java/com/bicap/farm_management/service/EnvironmentMetricService.java
             throw new RuntimeException("Lỗi đồng bộ thời tiết: " + e.getMessage());
         }
     }
