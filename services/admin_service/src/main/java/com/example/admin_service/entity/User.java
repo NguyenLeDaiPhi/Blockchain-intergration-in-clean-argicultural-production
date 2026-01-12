@@ -42,13 +42,11 @@ public class User {
 
     @ManyToMany
     @JoinTable(
-        name = "user_roles",
-        joinColumns = @JoinColumn(name = "user_id"),    
-        inverseJoinColumns = @JoinColumn(name = "role_id")
+            name = "user_roles",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id")
     )
-    private Set<Role> role = new HashSet<>();
-
-    // ... existing
+    private Set<Role> roles = new HashSet<>();
 
     @JsonManagedReference  // Optional: If you ever serialize User and want UserProfile included without loop
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)

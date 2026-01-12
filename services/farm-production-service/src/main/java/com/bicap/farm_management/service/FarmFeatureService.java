@@ -75,4 +75,7 @@ public class FarmFeatureService {
     return farmRepository.findByOwnerId(ownerId)
             .orElseThrow(() -> new RuntimeException("Chưa tìm thấy trang trại nào cho tài khoản này."));
     }
+    public java.util.List<Farm> getAllFarms() {
+        return farmRepository.findAll();
+    }
 }

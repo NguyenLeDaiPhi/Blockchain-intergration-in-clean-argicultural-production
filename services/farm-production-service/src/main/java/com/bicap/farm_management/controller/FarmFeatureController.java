@@ -4,6 +4,7 @@ import com.bicap.farm_management.dto.FarmUpdateDto;
 import com.bicap.farm_management.entity.*;
 import com.bicap.farm_management.repository.FarmRepository;
 import com.bicap.farm_management.service.FarmFeatureService;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -35,5 +36,10 @@ public class FarmFeatureController {
     @GetMapping("/owner/{ownerId}")
     public ResponseEntity<Farm> getFarmByOwnerId(@PathVariable Long ownerId) {
         return ResponseEntity.ok(farmFeatureService.getFarmByOwnerId(ownerId));
+    }
+    @GetMapping // Map vào GET /api/farm-features
+    public ResponseEntity<List<Farm>> getAllFarms() {
+        // Lưu ý: Bạn cần chắc chắn trong FarmFeatureService đã viết hàm getAllFarms()
+        return ResponseEntity.ok(farmFeatureService.getAllFarms());
     }
 }

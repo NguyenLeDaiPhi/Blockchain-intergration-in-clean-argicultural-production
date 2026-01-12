@@ -1,6 +1,5 @@
 package com.example.admin_service.controller;
 
-
 import com.example.admin_service.dto.RoleRequestDTO;
 import com.example.admin_service.entity.RoleRequest;
 import com.example.admin_service.service.RoleApprovalService;
@@ -38,8 +37,12 @@ public class RoleRequestController {
     // API: Admin Duyệt
     @PostMapping("/{requestId}/approve")
     public ResponseEntity<?> approveRequest(@PathVariable Long requestId) {
-        approvalService.approveRequest(requestId);
-        return ResponseEntity.ok("Request Approved! User role has been updated.");
+        try {
+            approvalService.approveRequest(requestId);
+            return ResponseEntity.ok("Request Approved! User role has been updated.");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());  // Trả 400 với message error
+        }
     }
 
     // API: Admin Từ chối
