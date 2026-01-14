@@ -20,7 +20,9 @@ public class JwtUser implements UserDetails {
         this.roles = roles;
     }
 
-    // 🔑 Spring Security dùng username này
+    /**
+     * 🔑 Username dùng cho Spring Security
+     */
     @Override
     public String getUsername() {
         return username;
@@ -34,15 +36,21 @@ public class JwtUser implements UserDetails {
         return roles;
     }
 
-    // ✅ CHUẨN SPRING SECURITY
+    /**
+     * ✅ LUÔN đảm bảo authority có prefix ROLE_
+     */
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return roles.stream()
+                .filter(role -> role != null && !role.isBlank())
+                .map(role -> role.startsWith("ROLE_")
+                        ? role
+                        : "ROLE_" + role)
                 .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toList());
     }
 
-    // Không dùng password vì JWT
+    // JWT-based → không dùng password
     @Override
     public String getPassword() {
         return null;
@@ -68,7 +76,9 @@ public class JwtUser implements UserDetails {
         return true;
     }
 
-    // 🔥 FIX BUG authentication.getName()
+    /**
+     * 🔥 Giúp authentication.getName() luôn trả về username
+     */
     @Override
     public String toString() {
         return this.username;

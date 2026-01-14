@@ -39,8 +39,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         String token = header.substring(7);
-        Claims claims = jwtUtils.parseClaims(token);
 
+        // ✅ Validate token (signature + expiration)
+        if (!jwtUtils.validateToken(token)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        Claims claims = jwtUtils.parseClaims(token);
         if (claims == null) {
             filterChain.doFilter(request, response);
             return;
@@ -49,23 +55,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String username = claims.getSubject();
         String email = claims.get("email", String.class);
 
-        // 🔥 QUAN TRỌNG: roles là STRING
-        String rolesStr = claims.get("roles", String.class);
-
-        if (rolesStr == null || rolesStr.isBlank()) {
+        List<String> roles = jwtUtils.getRoles(token);
+        if (roles.isEmpty()) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // Tách role
-        List<SimpleGrantedAuthority> authorities =
-                List.of(new SimpleGrantedAuthority(rolesStr.trim()));
+        List<SimpleGrantedAuthority> authorities = roles.stream()
+                .map(role -> role.startsWith("ROLE_") ? role : "ROLE_" + role)
+                .map(SimpleGrantedAuthority::new)
+                .toList();
 
-        JwtUser jwtUser = new JwtUser(
-                username,
-                email,
-                List.of(rolesStr.trim())
-        );
+        JwtUser jwtUser = new JwtUser(username, email, roles);
 
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(

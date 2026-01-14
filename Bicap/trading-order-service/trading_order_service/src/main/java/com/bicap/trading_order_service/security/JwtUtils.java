@@ -31,7 +31,7 @@ public class JwtUtils {
     // ================= CORE =================
 
     /**
-     * ✅ Parse claims an toàn – KHÔNG throw exception
+     * ✅ Parse JWT claims an toàn – KHÔNG throw exception
      */
     public Claims parseClaims(String token) {
         try {
@@ -47,14 +47,21 @@ public class JwtUtils {
     }
 
     /**
-     * ✅ Validate token (chữ ký + hết hạn)
+     * ✅ Validate token (signature + expiration BẮT BUỘC)
      */
     public boolean validateToken(String token) {
         Claims claims = parseClaims(token);
         if (claims == null) return false;
 
         Date expiration = claims.getExpiration();
-        return expiration == null || expiration.after(new Date());
+
+        // ❌ Không chấp nhận token không có exp
+        if (expiration == null) {
+            log.warn("JWT token missing expiration");
+            return false;
+        }
+
+        return expiration.after(new Date());
     }
 
     // ================= GETTERS =================
@@ -70,8 +77,9 @@ public class JwtUtils {
     }
 
     /**
-     * ✅ Chuẩn hoá role
-     * JWT hiện tại: roles = "ROLE_RETAILER"
+     * ✅ Lấy role từ JWT
+     * - Không trim ROLE_
+     * - Không cho role rỗng
      */
     public List<String> getRoles(String token) {
         Claims claims = parseClaims(token);
@@ -80,7 +88,10 @@ public class JwtUtils {
         Object rolesObj = claims.get("roles");
 
         if (rolesObj instanceof String roleStr) {
-            return List.of(roleStr);
+            roleStr = roleStr.trim();
+            if (!roleStr.isEmpty()) {
+                return List.of(roleStr);
+            }
         }
 
         return List.of();
