@@ -2,7 +2,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const sidebar = document.getElementById("sidebar");
   const toggleBtn = document.getElementById("toggleBtn");
   const userArea = document.getElementById("userMenu");
-  const userDropdown = document.getElementById(".user-dropdown");
+  const userDropdown = document.querySelector(".user-dropdown");
+
 
   /* ========== TOGGLE SIDEBAR ========== */
   if (toggleBtn && sidebar) {
@@ -15,9 +16,10 @@ document.addEventListener("DOMContentLoaded", () => {
   /* ========== USER MENU ========== */
   if (userArea && userDropdown) {
     userArea.addEventListener("click", (e) => {
-      e.stopPropagation();
-      userArea.classList.toggle("open");
-    });
+  e.stopPropagation();
+  userArea.classList.toggle("open");
+});
+
     // ✅ THÊM CHẶN CLICK TRONG DROPDOWN
   userDropdown.addEventListener("click", (e) => {
     e.stopPropagation();

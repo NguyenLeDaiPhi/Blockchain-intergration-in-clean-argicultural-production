@@ -53,6 +53,68 @@ app.get("/orders/:id", auth.requireAuth, retailerController.showOrderDetail);
 app.get("/profile", auth.requireAuth, retailerController.showProfile);
 app.get("/cart", auth.requireAuth, retailerController.showCart);
 
+// ================= Cart ==================
+app.post("/cart/update", auth.requireAuth, (req, res) => {
+  const { id, delta } = req.body;
+
+  if (!req.session.cart) {
+    return res.status(400).json({ message: "Giỏ hàng trống" });
+  }
+
+  const item = req.session.cart.find(i => i.id == id);
+  if (!item) {
+    return res.status(404).json({ message: "Không tìm thấy sản phẩm" });
+  }
+
+  item.quantity += delta;
+
+  // ❗ Không cho nhỏ hơn 1
+  if (item.quantity < 1) {
+    item.quantity = 1;
+  }
+
+  res.json({
+    message: "Cập nhật số lượng thành công",
+    cart: req.session.cart,
+  });
+});
+
+
+app.get("/cart", auth.requireAuth, (req, res) => {
+  res.render("cart", {
+    user: req.user,
+    cart: req.session.cart || [],
+    pageTitle: "Giỏ hàng",
+  });
+});
+
+app.post("/cart/add", auth.requireAuth, (req, res) => {
+  const { productId } = req.body;
+
+  if (!productId) {
+    return res.status(400).json({ message: "Thiếu productId" });
+  }
+
+  if (!req.session.cart) {
+    req.session.cart = [];
+  }
+
+  const exists = req.session.cart.find(i => i.id === productId);
+  if (exists) {
+    return res.status(400).json({ message: "Sản phẩm đã có trong giỏ" });
+  }
+
+  // ⚠️ Vì chưa có DB cart → chỉ lưu tối thiểu
+  req.session.cart.push({
+    id: productId,
+    quantity: 1,
+  });
+
+  res.json({ message: "Đã thêm vào giỏ hàng" });
+});
+
+
+
 // ================= API – LIVE SEARCH =================
 app.get("/api/marketplace-search", auth.requireAuth, async (req, res) => {
   const marketplaceService = require("./src/retailer/marketplace.service");
