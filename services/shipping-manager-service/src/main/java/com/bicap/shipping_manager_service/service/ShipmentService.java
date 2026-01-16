@@ -2,7 +2,9 @@ package com.bicap.shipping_manager_service.service;
 
 import com.bicap.shipping_manager_service.client.BlockchainServiceClient;
 import com.bicap.shipping_manager_service.client.FarmServiceClient;
+import com.bicap.shipping_manager_service.config.RabbitMQConfig; // NEW: Import Config
 import com.bicap.shipping_manager_service.dto.OrderResponse;
+import com.bicap.shipping_manager_service.dto.ShipmentEvent; // NEW: Import DTO
 import com.bicap.shipping_manager_service.dto.WriteBlockchainRequest;
 import com.bicap.shipping_manager_service.entity.*;
 import com.bicap.shipping_manager_service.repository.*;
@@ -10,6 +12,7 @@ import com.google.gson.Gson;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.rabbit.core.RabbitTemplate; // NEW: Import RabbitTemplate
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -26,21 +29,20 @@ public class ShipmentService {
     private final VehicleRepository vehicleRepository;
     private final FarmServiceClient farmClient;
     private final BlockchainServiceClient blockchainClient;
+    private final RabbitTemplate rabbitTemplate; // NEW: Inject RabbitTemplate
     private final Gson gson = new Gson();
 
     public List<Shipment> getAllShipments() {
         return shipmentRepository.findAll();
     }
 
-    // 1. Tạo vận đơn
+    // 1. Tạo vận đơn (Giữ nguyên)
     public Shipment createShipment(Long orderId, String from, String to) {
-        // Kiểm tra đơn hàng tồn tại
         try {
             OrderResponse order = farmClient.getOrderDetails(orderId);
             if (order == null) throw new RuntimeException("Order not found");
         } catch (Exception e) {
             logger.error("Error calling Farm Service: {}", e.getMessage());
-            // Tạm thời bỏ qua lỗi connection để test nếu chưa chạy Farm Service
         }
 
         Shipment shipment = new Shipment();
@@ -52,7 +54,7 @@ public class ShipmentService {
         return shipmentRepository.save(shipment);
     }
 
-    // 2. Điều phối xe và tài xế
+    // 2. Điều phối xe và tài xế (Giữ nguyên)
     public Shipment assignDriverAndVehicle(Long shipmentId, Long driverId, Long vehicleId) {
         Shipment shipment = shipmentRepository.findById(shipmentId)
                 .orElseThrow(() -> new RuntimeException("Shipment not found"));
@@ -70,13 +72,37 @@ public class ShipmentService {
         return shipmentRepository.save(shipment);
     }
 
-    // 3. Cập nhật trạng thái & Blockchain
+    // 3. Cập nhật trạng thái & Blockchain & RabbitMQ (Đã cập nhật)
     public Shipment updateStatus(Long shipmentId, ShipmentStatus status) {
         Shipment shipment = shipmentRepository.findById(shipmentId)
                 .orElseThrow(() -> new RuntimeException("Shipment not found"));
 
         shipment.setStatus(status);
+        // Cập nhật thời gian update
+        shipment.setUpdatedAt(LocalDateTime.now());
+        
         Shipment saved = shipmentRepository.save(shipment);
+
+        // --- NEW: Gửi sự kiện RabbitMQ khi giao hàng thành công ---
+        if (status == ShipmentStatus.DELIVERED) {
+            try {
+                ShipmentEvent event = new ShipmentEvent(
+                    saved.getOrderId(), 
+                    "DELIVERED", 
+                    "Shipment completed for ID: " + saved.getId()
+                );
+                
+                rabbitTemplate.convertAndSend(
+                    RabbitMQConfig.EXCHANGE, 
+                    RabbitMQConfig.ROUTING_KEY, 
+                    event
+                );
+                logger.info("Đã gửi sự kiện DELIVERED cho Order ID: {}", saved.getOrderId());
+            } catch (Exception e) {
+                logger.error("Lỗi gửi RabbitMQ: {}", e.getMessage());
+            }
+        }
+        // -----------------------------------------------------------
 
         // Ghi log Blockchain
         try {

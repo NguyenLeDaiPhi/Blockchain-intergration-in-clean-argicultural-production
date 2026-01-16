@@ -49,4 +49,27 @@ public class RabbitMQConfig {
     
     @Bean
     public MessageConverter jsonMessageConverter() { return new Jackson2JsonMessageConverter(); }
+    // Thêm các hằng số định nghĩa Queue và Routing Key khớp với bên Shipping Service
+    public static final String SHIPMENT_QUEUE = "shipment.status.queue";
+    public static final String EXCHANGE = "bicap.internal.exchange";
+    public static final String ROUTING_KEY = "shipment.status.routing.key";
+
+    @Bean
+    public Queue shipmentQueue() {
+        return new Queue(SHIPMENT_QUEUE);
+    }
+
+    // Nếu Exchange chưa được define bean thì uncomment dòng dưới
+    /*
+    @Bean
+    public TopicExchange internalExchange() {
+        return new TopicExchange(EXCHANGE);
+    }
+    */
+
+    // Tạo liên kết (Binding) giữa Queue và Exchange thông qua Routing Key
+    @Bean
+    public Binding bindingShipment(Queue shipmentQueue, TopicExchange internalExchange) {
+        return BindingBuilder.bind(shipmentQueue).to(internalExchange).with(ROUTING_KEY);
+    }
 }

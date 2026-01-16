@@ -5,9 +5,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
+@AllArgsConstructor
 @NoArgsConstructor
-@AllArgsConstructor 
-public class WriteBlockchainRequest {
-    private Long batchId;
-    private String rawData;
+public class ShipmentEvent {
+    private Long orderId;
+    private String status;
+    private String message;
 }

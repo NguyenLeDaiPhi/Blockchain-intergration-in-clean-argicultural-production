@@ -25,4 +25,5 @@ public class PurchaseOrder {
     @ManyToOne
     @JoinColumn(name = "listing_id")
     private ProductListing productListing;
+
 }

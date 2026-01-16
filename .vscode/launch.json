@@ -51,6 +51,16 @@
             "projectName": "auth-service",
             "args": "",
             "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-FarmManagementApplication<farm-production>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.bicap.farm_management.FarmManagementApplication",
+            "projectName": "farm-production",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
         }
     ]
 }
