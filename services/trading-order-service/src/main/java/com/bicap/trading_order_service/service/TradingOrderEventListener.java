@@ -31,7 +31,7 @@ public class TradingOrderEventListener {
 
             FarmManager user = new FarmManager();
             user.setId(id);
-            user.setFarmId(1L);
+            user.setFarmId(id);
             user.setIsNew(true);
             user.setUsername(username);
             user.setEmail(email);
