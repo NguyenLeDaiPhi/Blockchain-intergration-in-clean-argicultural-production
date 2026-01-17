@@ -21,18 +21,17 @@ services:
       - bicap-network
 
   # === THÊM MỚI: Postgres Database (Phải thẳng hàng với bicap-mysql) ===
-  postgres-db:
-    image: postgres:15
-    container_name: postgres-db
+  shipping-mysql:
+    image: mysql:8.0
+    container_name: shipping-mysql
     restart: always
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: shipping_db
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: shipping_db  # Tự động tạo DB này khi khởi động
     ports:
-      - "5432:5432"
+      - "3308:3306"  # Map cổng 3308 máy ngoài vào 3306 của container này
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - shipping_mysql_data:/var/lib/mysql
     networks:
       - bicap-network
 
@@ -123,4 +122,4 @@ services:
 volumes:
   kong_data:
   mysql_data:
-  postgres_data:
+  shipping_mysql_data:
