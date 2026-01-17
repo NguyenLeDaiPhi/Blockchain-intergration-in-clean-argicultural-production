@@ -6,9 +6,9 @@ networks:
 
 services:
   # === 1. MySQL Database ===
-  bicap-mysql:
+  production-mysql:
     image: mysql:8.0
-    container_name: bicap-mysql
+    container_name: production-mysql
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root
@@ -29,7 +29,7 @@ services:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: shipping_db  # Tự động tạo DB này khi khởi động
     ports:
-      - "3308:3306"  # Map cổng 3308 máy ngoài vào 3306 của container này
+      - "3309:3306"  # Map cổng 3308 máy ngoài vào 3306 của container này
     volumes:
       - shipping_mysql_data:/var/lib/mysql
     networks:
