@@ -4,19 +4,18 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 @Entity
-@Table(name = "drivers")
 @Data
+@Table(name = "drivers")
 public class Driver {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // TRƯỜNG NÀY: Liên kết với username từ Auth Service
     @Column(unique = true)
-    private String username;
+    private Long userId; // ID tài khoản từ Auth Service
 
     private String fullName;
     private String licenseNumber;
     private String phoneNumber;
-    private String status;
+    private String status; // AVAILABLE, BUSY
 }

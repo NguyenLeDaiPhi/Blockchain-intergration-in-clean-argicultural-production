@@ -59,13 +59,10 @@ public class RabbitMQConfig {
         return new Queue(SHIPMENT_QUEUE);
     }
 
-    // Nếu Exchange chưa được define bean thì uncomment dòng dưới
-    /*
     @Bean
     public TopicExchange internalExchange() {
         return new TopicExchange(EXCHANGE);
     }
-    */
 
     // Tạo liên kết (Binding) giữa Queue và Exchange thông qua Routing Key
     @Bean

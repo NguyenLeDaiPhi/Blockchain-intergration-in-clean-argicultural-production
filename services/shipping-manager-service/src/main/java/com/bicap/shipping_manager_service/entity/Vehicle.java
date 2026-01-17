@@ -11,8 +11,8 @@ public class Vehicle {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String licensePlate; // Biển số
-    private Double capacity;     // Tải trọng
-    private String type;         // Loại xe (Lạnh, Thường)
-    private Boolean isAvailable; // Trạng thái sẵn sàng
+    private String licensePlate; // Biển số xe
+    private String model;
+    private Double capacity; // Tải trọng (tấn)
+    private String status; // AVAILABLE, MAINTENANCE, IN_USE
 }

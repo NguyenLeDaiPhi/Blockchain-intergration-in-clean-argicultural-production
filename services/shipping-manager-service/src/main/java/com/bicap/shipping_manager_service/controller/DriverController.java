@@ -10,29 +10,25 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/drivers") // Endpoint gốc cho tài xế
+@RequestMapping("/api/drivers")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class DriverController {
 
     private final DriverService driverService;
 
-    // API: Tìm kiếm tài xế
-    // URL: GET /api/drivers/search?name=Tuan
+    @GetMapping
+    @PreAuthorize("hasAnyRole('SHIPPING_MANAGER', 'ADMIN')")
+    public ResponseEntity<List<Driver>> getAllDrivers() {
+        return ResponseEntity.ok(driverService.getAllDrivers());
+    }
+
     @GetMapping("/search")
     @PreAuthorize("hasAnyRole('SHIPPING_MANAGER', 'ADMIN')")
     public ResponseEntity<List<Driver>> searchDrivers(@RequestParam String name) {
         return ResponseEntity.ok(driverService.searchDriversByName(name));
     }
 
-    // API: Lấy danh sách tất cả tài xế
-    @GetMapping
-    @PreAuthorize("hasAnyRole('SHIPPING_MANAGER', 'ADMIN')")
-    public ResponseEntity<List<Driver>> getAllDrivers() {
-        return ResponseEntity.ok(driverService.getAllDrivers());
-    }
-    
-    // API: Tạo tài xế mới
     @PostMapping
     @PreAuthorize("hasAnyRole('SHIPPING_MANAGER', 'ADMIN')")
     public ResponseEntity<Driver> createDriver(@RequestBody Driver driver) {

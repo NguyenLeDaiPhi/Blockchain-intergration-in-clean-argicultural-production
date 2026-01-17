@@ -5,40 +5,58 @@ import com.bicap.shipping_manager_service.entity.ShipmentStatus;
 import com.bicap.shipping_manager_service.service.ShipmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/shipping")
+@RequestMapping("/api/shipments")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*") // Cho phép Frontend gọi
+@CrossOrigin(origins = "*") // Cho phép frontend truy cập
 public class ShipmentController {
 
     private final ShipmentService shipmentService;
 
-    @GetMapping("/list")
-    public List<Shipment> getAll() {
-        return shipmentService.getAllShipments();
+    // API: Lấy danh sách tất cả vận đơn (Admin/Manager)
+    @GetMapping
+    @PreAuthorize("hasAnyRole('SHIPPING_MANAGER', 'ADMIN')")
+    public ResponseEntity<List<Shipment>> getAllShipments() {
+        return ResponseEntity.ok(shipmentService.getAllShipments());
     }
 
-    @PostMapping("/create")
-    public ResponseEntity<Shipment> create(@RequestParam Long orderId, 
-                                           @RequestParam String from, 
-                                           @RequestParam String to) {
-        return ResponseEntity.ok(shipmentService.createShipment(orderId, from, to));
+    // API: Tạo vận đơn mới
+    @PostMapping
+    @PreAuthorize("hasAnyRole('SHIPPING_MANAGER', 'ADMIN')")
+    public ResponseEntity<Shipment> createShipment(@RequestBody Shipment shipment) {
+        return ResponseEntity.ok(shipmentService.createShipment(
+                shipment.getOrderId(),
+                shipment.getFromLocation(),
+                shipment.getToLocation()
+        ));
     }
 
+    // API: Điều phối xe và tài xế
     @PutMapping("/{id}/assign")
-    public ResponseEntity<Shipment> assign(@PathVariable Long id, 
-                                           @RequestParam Long driverId, 
-                                           @RequestParam Long vehicleId) {
+    @PreAuthorize("hasAnyRole('SHIPPING_MANAGER', 'ADMIN')")
+    public ResponseEntity<Shipment> assignDriverAndVehicle(
+            @PathVariable Long id,
+            @RequestParam Long driverId,
+            @RequestParam Long vehicleId) {
         return ResponseEntity.ok(shipmentService.assignDriverAndVehicle(id, driverId, vehicleId));
     }
 
+    // API: Cập nhật trạng thái vận đơn
     @PutMapping("/{id}/status")
-    public ResponseEntity<Shipment> updateStatus(@PathVariable Long id, 
-                                                 @RequestParam ShipmentStatus status) {
+    @PreAuthorize("hasAnyRole('DRIVER', 'SHIPPING_MANAGER', 'ADMIN')")
+    public ResponseEntity<Shipment> updateStatus(@PathVariable Long id, @RequestParam ShipmentStatus status) {
         return ResponseEntity.ok(shipmentService.updateStatus(id, status));
+    }
+
+    // API: Lấy danh sách đơn hàng của tài xế đang đăng nhập (Mobile App)
+    @GetMapping("/my-shipments")
+    @PreAuthorize("hasRole('DRIVER')")
+    public ResponseEntity<List<Shipment>> getMyShipments() {
+        return ResponseEntity.ok(shipmentService.getMyShipments());
     }
 }

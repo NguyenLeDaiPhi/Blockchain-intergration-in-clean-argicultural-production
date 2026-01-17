@@ -8,7 +8,6 @@ import java.util.Optional;
 
 @Repository
 public interface DriverRepository extends JpaRepository<Driver, Long> {
-    // Tìm theo username (đã có)
-    Optional<Driver> findByUsername(String username);
-    List<Driver> findByFullNameContainingIgnoreCase(String fullName);
+    List<Driver> findByFullNameContainingIgnoreCase(String name);
+    Optional<Driver> findByUserId(Long userId);
 }

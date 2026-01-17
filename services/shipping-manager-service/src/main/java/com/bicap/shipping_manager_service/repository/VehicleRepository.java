@@ -6,6 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
-    // Tìm xe theo biển số nếu cần
     boolean existsByLicensePlate(String licensePlate);
 }
