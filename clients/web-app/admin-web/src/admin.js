@@ -11,6 +11,8 @@ const router = express.Router();
 const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || 'http://localhost:8080';
 // Admin Service dùng cho các tác vụ quản trị User
 const ADMIN_SERVICE_URL = process.env.ADMIN_SERVICE_URL || 'http://localhost:8085';
+// Farm Service URL
+const FARM_SERVICE_URL = process.env.FARM_SERVICE_URL || 'http://localhost:8081';
 
 // Đồng bộ secret/role với authentication.js để đọc JWT trong cookie
 const JWT_SECRET_STRING = 'YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9uCg==';
@@ -203,15 +205,28 @@ router.put('/api/v1/admin/users/:userId/status', requireAuth, requireAdmin, asyn
 // 5. Route trang Giám sát Farm
 router.get('/admin/farms', requireAuth, requireAdmin, async (req, res) => {
     try {
-        // Gọi API lấy danh sách farm (đã làm ở các bước trước qua Feign Client)
-        // const farmList = await farmServiceClient.getAllFarms();
-        const farmList = [];
+        const headers = { Authorization: `Bearer ${req.accessToken}` };
+        
+        console.log('Calling Farm Service at:', FARM_SERVICE_URL);
+        
+        // Gọi API lấy danh sách farm từ Farm Service
+        const response = await axios.get(`${FARM_SERVICE_URL}/api/farm-features`, { 
+            headers,
+            timeout: 5000
+        });
+        
+        const farmList = response.data || [];
+        console.log('Farm data received:', farmList.length, 'farms');
 
         res.render('farms', {
             farms: farmList // List FarmResponseDTO
         });
     } catch (e) {
-        res.status(500).render('error', { message: 'Lỗi tải trang Farm' });
+        console.error('Lỗi gọi Farm Service API:', e.message);
+        console.error('FARM_SERVICE_URL was:', FARM_SERVICE_URL);
+        res.render('farms', {
+            farms: []
+        });
     }
 });
 module.exports = router;
