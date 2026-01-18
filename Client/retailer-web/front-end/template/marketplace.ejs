@@ -51,8 +51,13 @@
                 <button class="btn-outline" onclick="openQr('<%= p.id %>')">
                    Xem chi tiết
                 </button>
-                <button class="btn-primary add-to-cart-btn" data-id="<%= p.id %>">
-                   Thêm vào giỏ
+                  <button
+                      class="btn-primary add-to-cart-btn"
+                      data-id="<%= p.id %>"
+                      data-name="<%= p.name %>"
+                      data-price="<%= p.price %>"
+                >
+                  Thêm vào giỏ
                 </button>
               </div>
 
@@ -84,6 +89,8 @@
 <!-- JS -->
 <script src="/js/layout.js"></script>
 <script src="/js/marketplace-search.js"></script>
+<script src="/js/cart.js"></script>
+
 
 </body>
 </html>

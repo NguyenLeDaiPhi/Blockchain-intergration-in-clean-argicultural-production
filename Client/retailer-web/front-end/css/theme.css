@@ -461,94 +461,219 @@ body {
     padding: 16px;
   }
 }
-/* ================= CART ================= */
+/* ================= CART PAGE ================= */
 
-.cart-list {
+.cart-page {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  height: 100%;
 }
 
+/* LIST SCROLL */
+.cart-list {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 120px; /* chừa chỗ cho footer */
+}
+
+/* ITEM */
 .cart-item {
   display: grid;
-  grid-template-columns: 80px 1fr 140px 140px 40px;
+  grid-template-columns: 80px 1fr 120px 120px 40px;
+  align-items: center;
   gap: 16px;
-  background: white;
+  background: #fff;
   padding: 16px;
   border-radius: 14px;
-  margin-bottom: 14px;
-  align-items: center;
+  margin-bottom: 16px;
 }
 
-
+/* IMAGE */
 .cart-image {
   width: 64px;
   height: 64px;
-  border-radius: 12px;
-  overflow: hidden;
 }
 
-.cart-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
+/* INFO */
 .cart-info h4 {
-  margin: 0 0 4px;
+  margin: 0 0 6px;
+  font-size: 16px;
 }
 
 .cart-info .price {
-  color: var(--green-main);
+  color: #2e7d32;
   font-weight: 600;
 }
 
-.cart-quantity {
+/* QTY */
+.cart-qty {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.cart-quantity button {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: 1px solid #ddd;
-  background: white;
+/* ITEM TOTAL */
+.cart-total {
+  text-align: right;
+  font-weight: 600;
+}
+
+/* REMOVE */
+.cart-remove button {
+  border: none;
+  background: transparent;
+  font-size: 18px;
   cursor: pointer;
 }
 
-.cart-total {
-  text-align: right;
-}
-
-.cart-checkout {
-  margin-top: 24px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.btn-checkout {
-  padding: 12px 24px;
-  font-size: 16px;
-}
-.cart-page {
-  max-width: 1000px;
-  margin: auto;
-}
-.cart-qty button {
-  width: 32px;
-  height: 32px;
-}
+/* ================= FOOTER Cart ================= */
 
 .cart-footer {
   position: sticky;
   bottom: 0;
   background: white;
-  padding: 16px;
-  border-top: 1px solid #eee;
+  padding: 18px 24px;
+  border-top: 1px solid #e5e7eb;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 24px;
+  box-shadow: 0 -6px 16px rgba(0,0,0,0.06);
+}
+
+
+.btn-checkout {
+  min-width: 240px;
+  height: 52px;
+  padding: 0 32px;
+
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+
+  background: linear-gradient(135deg, #2e7d32, #43a047);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease;
+
+  box-shadow: 0 10px 24px rgba(46, 125, 50, 0.35);
+}
+.btn-checkout:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 32px rgba(46, 125, 50, 0.45);
+}
+.btn-checkout:active {
+  transform: scale(0.97);
+  box-shadow: 0 6px 16px rgba(46, 125, 50, 0.35);
+}
+.btn-checkout:disabled {
+  background: #cfd8dc;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+@media (max-width: 768px) {
+  .btn-checkout {
+    width: 100%;
+  }
+}
+/* ================= PAYMENT POPUP ================= */
+
+.payment-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  z-index: 1000;
+}
+
+.payment-overlay.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.payment-modal {
+  width: 420px;
+  background: #fff;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+  animation: popupUp 0.25s ease;
+}
+
+/* HEADER */
+.payment-header h3 {
+  margin: 0 0 6px;
+}
+
+.payment-header p {
+  margin: 0 0 20px;
+  font-size: 16px;
+}
+
+/* METHODS */
+.payment-methods {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.payment-method {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: border 0.2s ease, background 0.2s ease;
+}
+
+.payment-method:hover {
+  background: #f1f8f4;
+  border-color: #2e7d32;
+}
+
+.payment-method input {
+  accent-color: #2e7d32;
+}
+
+/* BUTTON */
+.btn-next {
+  width: 100%;
+}
+
+/* ANIMATION */
+@keyframes popupUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* MOBILE */
+@media (max-width: 480px) {
+  .payment-modal {
+    width: 90%;
+  }
 }
