@@ -147,6 +147,8 @@ services:
         condition: service_healthy
       bicap-message-queue:
         condition: service_started
+      farm-production-service:
+        condition: service_started
     environment:
       - spring.datasource.url=jdbc:mysql://auth-db:3306/auth_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
       - spring.datasource.username=root
@@ -156,6 +158,7 @@ services:
       - SPRING_RABBITMQ_PORT=5672
       - SPRING_RABBITMQ_USERNAME=root
       - SPRING_RABBITMQ_PASSWORD=0862264719Phi
+      - farm.service.url=http://farm-production-service:8081
     ports:
       - "8085:8085"
     networks:

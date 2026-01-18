@@ -6,6 +6,7 @@ import lombok.Data;
 
 @Data
 public class FarmCreateDto {
+    private Long ownerId;
     private String farmName;
     private String address;
     private String email;

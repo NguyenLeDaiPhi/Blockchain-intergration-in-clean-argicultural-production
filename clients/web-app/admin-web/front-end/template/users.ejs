@@ -122,7 +122,7 @@
                           <td>
                             <div class="d-flex px-3 py-1">
                               <div>
-                                <img src="/assets/img/team-2.jpg" class="avatar avatar-sm me-3 border-radius-lg" alt="user1">
+                                <img src="/assets/img/avatar-default.jpg" class="avatar avatar-sm me-3 border-radius-lg" alt="user1">
                               </div>
                               <div class="d-flex flex-column justify-content-center">
                                 <h6 class="mb-0 text-sm"><%= user.username %></h6>
@@ -166,23 +166,47 @@
                 </table>
               </div>
             </div>
-            <div class="card-footer py-3">
-                <% const page = (pagination && typeof pagination.page === 'number') ? pagination.page : 0; %>
-                <% const totalPages = (pagination && typeof pagination.totalPages === 'number') ? pagination.totalPages : 1; %>
-                <% const size = (pagination && typeof pagination.size === 'number') ? pagination.size : 10; %>
+            <div class="card-footer px-3 border-0 d-flex align-items-center justify-content-between">
+                <% 
+                    const page = (pagination && typeof pagination.page === 'number') ? pagination.page : 0;
+                    const totalPages = (pagination && typeof pagination.totalPages === 'number') ? pagination.totalPages : 1;
+                    const size = (pagination && typeof pagination.size === 'number') ? pagination.size : 10;
+                    const totalElements = (pagination && typeof pagination.totalElements === 'number') ? pagination.totalElements : 0;
+                    
+                    // Tạo query string để giữ lại bộ lọc khi chuyển trang
+                    const currentKeyword = encodeURIComponent(keyword || '');
+                    const currentRole = encodeURIComponent(role || '');
+                    const baseLink = `?keyword=${currentKeyword}&role=${currentRole}&size=${size}`;
+                %>
+                
+                <div class="text-secondary text-sm">
+                    Hiển thị <b><%= users.length %></b> trên tổng số <b><%= totalElements %></b> người dùng
+                </div>
+
                 <nav aria-label="Page navigation">
-                  <ul class="pagination justify-content-end mb-0">
+                  <ul class="pagination d-flex justify-content-end mb-0">
+                    
                     <li class="page-item <%= page <= 0 ? 'disabled' : '' %>">
-                      <a class="page-link" href="?keyword=<%= encodeURIComponent(keyword || '') %>&role=<%= encodeURIComponent(role || '') %>&page=<%= page > 0 ? page - 1 : 0 %>&size=<%= size %>">Trước</a>
+                      <a class="page-link" href="<%= baseLink %>&page=<%= page - 1 %>" aria-label="Previous">
+                        <span class="material-symbols-rounded text-sm">chevron_left</span>
+                      </a>
                     </li>
-                    <li class="page-item disabled"><span class="page-link">Trang <%= page + 1 %>/<%= totalPages || 1 %></span></li>
-                    <li class="page-item <%= page >= (totalPages - 1) ? 'disabled' : '' %>">
-                      <a class="page-link" href="?keyword=<%= encodeURIComponent(keyword || '') %>&role=<%= encodeURIComponent(role || '') %>&page=<%= page + 1 %>&size=<%= size %>">Sau</a>
+
+                    <li class="page-item active">
+                        <span class="page-link bg-gradient-dark text-white shadow-dark border-0">
+                          <%= page + 1 %> / <%= totalPages > 0 ? totalPages : 1 %>
+                        </span>
                     </li>
+
+                    <li class="page-item <%= page >= totalPages - 1 ? 'disabled' : '' %>">
+                      <a class="page-link" href="<%= baseLink %>&page=<%= page + 1 %>" aria-label="Next">
+                        <span class="material-symbols-rounded text-sm">chevron_right</span>
+                      </a>
+                    </li>
+
                   </ul>
                 </nav>
             </div>
-          </div>
         </div>
       </div>
     </div>

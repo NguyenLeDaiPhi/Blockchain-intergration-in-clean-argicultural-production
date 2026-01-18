@@ -1,6 +1,7 @@
 package com.example.admin_service.controller;
 
 import com.example.admin_service.dto.RoleRequestDTO;
+import com.example.admin_service.dto.RoleRequestResponseDTO;
 import com.example.admin_service.entity.RoleRequest;
 import com.example.admin_service.service.RoleApprovalService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +31,7 @@ public class RoleRequestController {
 
     // API: Admin xem danh sách chờ
     @GetMapping("/pending")
-    public ResponseEntity<List<RoleRequest>> getPendingRequests() {
+    public ResponseEntity<List<RoleRequestResponseDTO>> getPendingRequests() {
         return ResponseEntity.ok(approvalService.getPendingRequests());
     }
 

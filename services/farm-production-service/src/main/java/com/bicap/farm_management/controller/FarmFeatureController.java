@@ -7,6 +7,7 @@ import com.bicap.farm_management.service.FarmFeatureService;
 import com.bicap.farm_management.dto.FarmLogDTO;
 import com.bicap.farm_management.service.FarmLogService;
 import java.util.List;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -28,6 +29,17 @@ public class FarmFeatureController {
     @PostMapping("/")
     public ResponseEntity<Farm> createFarm(@RequestBody FarmCreateDto dto) {
         Farm createdFarm = farmFeatureService.createFarm(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdFarm);
+    }
+    
+    // API tạo farm mới cho owner (được gọi khi admin duyệt role FARM_MANAGER)
+    @PostMapping("/create-for-owner")
+    public ResponseEntity<Farm> createFarmForOwner(@RequestBody Map<String, Long> request) {
+        Long ownerId = request.get("ownerId");
+        if (ownerId == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        Farm createdFarm = farmFeatureService.createFarmForOwner(ownerId);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdFarm);
     }
     // 1. Cập nhật thông tin trang trại

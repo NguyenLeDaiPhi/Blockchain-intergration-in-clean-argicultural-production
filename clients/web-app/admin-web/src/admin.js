@@ -60,16 +60,28 @@ router.get('/admin', requireAuth, (req, res) => res.redirect('/dashboard'));
 router.get('/dashboard', requireAuth, requireAdmin, async (req, res) => {
     try {
         const headers = { Authorization: `Bearer ${req.accessToken}` };
-        const [pendingResponse] = await Promise.all([
-            axios.get(`${AUTH_SERVICE_URL}/api/v1/role-requests/pending`, { headers })
+        
+        // Gọi song song cả 2 API: pending requests và stats
+        const [pendingResponse, statsResponse] = await Promise.all([
+            axios.get(`${ADMIN_SERVICE_URL}/api/v1/role-requests/pending`, { headers }),
+            axios.get(`${ADMIN_SERVICE_URL}/api/v1/admin/dashboard/stats`, { headers }).catch((err) => {
+                console.error('Lỗi gọi API stats:', err.message);
+                return { data: {} };
+            })
         ]);
 
         const pendingRequests = pendingResponse.data || [];
+        const stats = statsResponse.data || {};
+        
+        console.log('Stats API response:', stats);
 
         res.render('dashboard', {
             user: req.user,
             requests: pendingRequests,
             pendingCount: pendingRequests.length,
+            totalUsers: stats.totalUsers || 0,
+            totalFarms: stats.totalFarms || 0,
+            totalFarmManagers: stats.totalFarmManagers || 0,
             error: null
         });
     } catch (error) {
@@ -78,6 +90,9 @@ router.get('/dashboard', requireAuth, requireAdmin, async (req, res) => {
             user: req.user,
             requests: [],
             pendingCount: 0,
+            totalUsers: 0,
+            totalFarms: 0,
+            totalFarmManagers: 0,
             error: 'Không thể kết nối tới Service quản lý. Vui lòng thử lại sau.'
         });
     }
@@ -92,7 +107,7 @@ router.post('/api/v1/role-requests/:requestId/approve', requireAuth, requireAdmi
     try {
         const { requestId } = req.params;
         const headers = { Authorization: `Bearer ${req.accessToken}` };
-        await axios.post(`${AUTH_SERVICE_URL}/api/v1/role-requests/${requestId}/approve`, null, { headers });
+        await axios.post(`${ADMIN_SERVICE_URL}/api/v1/role-requests/${requestId}/approve`, null, { headers });
         res.status(200).json({ message: 'Duyệt thành công!' });
     } catch (error) {
         console.error('Lỗi duyệt role:', error.response?.data || error.message);
@@ -110,7 +125,7 @@ router.post('/api/v1/role-requests/:requestId/reject', requireAuth, requireAdmin
             'Content-Type': 'text/plain'
         };
         // Java Controller nhận @RequestBody String => gửi text/plain
-        await axios.post(`${AUTH_SERVICE_URL}/api/v1/role-requests/${requestId}/reject`, reason, { headers });
+        await axios.post(`${ADMIN_SERVICE_URL}/api/v1/role-requests/${requestId}/reject`, reason, { headers });
         res.status(200).json({ message: 'Đã từ chối yêu cầu.' });
     } catch (error) {
         console.error('Lỗi từ chối role:', error.response?.data || error.message);
@@ -229,4 +244,31 @@ router.get('/admin/farms', requireAuth, requireAdmin, async (req, res) => {
         });
     }
 });
+
+// 6. API Proxy: Lấy nhật ký hoạt động (logs) của Farm
+router.get('/api/v1/admin/farms/:farmId/logs', requireAuth, requireAdmin, async (req, res) => {
+    try {
+        const { farmId } = req.params;
+        const headers = { Authorization: `Bearer ${req.accessToken}` };
+        
+        console.log('Fetching logs for farm:', farmId);
+        
+        // Gọi API Farm Service để lấy logs
+        const response = await axios.get(`${FARM_SERVICE_URL}/api/farm-features/${farmId}/logs`, {
+            headers,
+            timeout: 10000
+        });
+        
+        const logs = response.data || [];
+        console.log('Logs received:', logs.length, 'entries');
+        
+        res.status(200).json(logs);
+    } catch (error) {
+        console.error('Lỗi lấy logs farm:', error.response?.data || error.message);
+        const statusCode = error.response?.status || 500;
+        const message = error.response?.data?.message || 'Lỗi khi lấy nhật ký hoạt động';
+        res.status(statusCode).json({ message });
+    }
+});
+
 module.exports = router;

@@ -1,5 +1,7 @@
 package com.example.admin_service.service;
 
+import com.example.admin_service.client.FarmServiceClient;
+import com.example.admin_service.dto.RoleRequestResponseDTO;
 import com.example.admin_service.entity.Role;
 import com.example.admin_service.entity.RoleRequest;
 import com.example.admin_service.entity.User;
@@ -13,7 +15,10 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.admin_service.enums.ERole;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class RoleApprovalService {
@@ -26,6 +31,9 @@ public class RoleApprovalService {
 
     @Autowired
     private RoleRepository roleRepository;  // Thêm inject
+    
+    @Autowired
+    private FarmServiceClient farmServiceClient;  // Thêm inject để gọi Farm Service
 
     // 1. User gửi yêu cầu
     public RoleRequest submitRequest(Long userId, String roleName, String docs) {
@@ -39,12 +47,30 @@ public class RoleApprovalService {
     }
 
     // 2. Admin lấy danh sách chờ duyệt
-    public List<RoleRequest> getPendingRequests() {
-        return requestRepository.findByStatus(RequestStatus.PENDING);
+    public List<RoleRequestResponseDTO> getPendingRequests() {
+        List<RoleRequest> requests = requestRepository.findByStatus(RequestStatus.PENDING);
+        
+        // Map từ RoleRequest sang RoleRequestResponseDTO, join với User để lấy username và email
+        return requests.stream().map(request -> {
+            User user = userRepository.findById(request.getUserId()).orElse(null);
+            
+            RoleRequestResponseDTO dto = new RoleRequestResponseDTO();
+            dto.setRequestId(request.getRequestId());
+            dto.setUserId(request.getUserId());
+            dto.setUserName(user != null ? user.getUsername() : "Unknown");
+            dto.setEmail(user != null ? user.getEmail() : "No Email");
+            dto.setRequestedRoleName(request.getRequestedRoleName());
+            dto.setStatus(request.getStatus());
+            dto.setDocumentUrls(request.getDocumentUrls());
+            dto.setAdminNote(request.getAdminNote());
+            dto.setCreatedAt(request.getCreatedAt());
+            dto.setUpdatedAt(request.getUpdatedAt());
+            
+            return dto;
+        }).collect(Collectors.toList());
     }
 
     // 3. Admin DUYỆT yêu cầu
-    // 3. Admin DUYỆT yêu cầu (Đã sửa lỗi logic update user_roles)
     @Transactional
     public void approveRequest(Long requestId) {
         // --- BƯỚC 1: Validate Request ---
@@ -93,6 +119,19 @@ public class RoleApprovalService {
         request.setStatus(RequestStatus.APPROVED);
         request.setUpdatedAt(LocalDateTime.now());
         requestRepository.save(request);
+
+        // --- BƯỚC 4: Nếu role là FARM_MANAGER, tự động tạo Farm mới cho user ---
+        if (eRole == ERole.ROLE_FARMMANAGER) {
+            try {
+                Map<String, Long> farmRequest = new HashMap<>();
+                farmRequest.put("ownerId", user.getId());
+                farmServiceClient.createFarmForOwner(farmRequest);
+                System.out.println("LOG: Đã tạo farm mới cho user " + user.getId());
+            } catch (Exception e) {
+                // Log lỗi nhưng không rollback transaction (farm có thể đã tồn tại)
+                System.err.println("WARNING: Không thể tạo farm cho user " + user.getId() + ": " + e.getMessage());
+            }
+        }
 
         System.out.println("LOG: Đã update user " + user.getId() + " thành role duy nhất: " + enumName);
     }

@@ -77,9 +77,15 @@ app.post('/login', async(req, res) => {
     const { email, password } = req.body;
 
     try {
-        const apiResponse = await axios.post(`${AUTH_SERVICE_URL}/login`, { email, password }, {
+        console.log('Attempting login for:', email);
+        console.log('AUTH_SERVICE_URL:', AUTH_SERVICE_URL);
+        console.log('Full URL:', `${AUTH_SERVICE_URL}/api/auth/login`);
+        
+        const apiResponse = await axios.post(`${AUTH_SERVICE_URL}/api/auth/login`, { email, password }, {
             headers: { 'Content-Type': 'application/json' }
         });
+
+        console.log('Login successful, response status:', apiResponse.status);
 
         const accessToken =
             typeof apiResponse.data === 'string'
@@ -114,6 +120,11 @@ app.post('/login', async(req, res) => {
 
     } catch (error) {
         const status = error.response?.status || 503;
+        
+        console.error('Login Error Details:');
+        console.error('Status:', status);
+        console.error('Response data:', error.response?.data);
+        console.error('Error message:', error.message);
         
         // --- PHẦN SỬA LỖI [object Object] ---
         let msg = 'Login failed';

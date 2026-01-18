@@ -80,4 +80,24 @@ public class FarmFeatureService {
         return farmRepository.findAll();
     }
 
+    // Tạo farm mới cho owner khi admin duyệt role FARM_MANAGER
+    @Transactional
+    public Farm createFarmForOwner(Long ownerId) {
+        // Kiểm tra xem owner đã có farm chưa
+        if (farmRepository.findByOwnerId(ownerId).isPresent()) {
+            throw new RuntimeException("Owner đã có trang trại, không thể tạo thêm");
+        }
+        
+        Farm newFarm = new Farm();
+        newFarm.setOwnerId(ownerId);
+        newFarm.setFarmName("Trang trại mới"); // Giá trị mặc định
+        newFarm.setAddress("Chưa cập nhật");   // Giá trị mặc định
+        newFarm.setEmail("chuacapnhat@farm.com"); // Giá trị mặc định (database NOT NULL)
+        newFarm.setHotline("0000000000");      // Giá trị mặc định
+        newFarm.setAreaSize(0.0);              // Giá trị mặc định
+        newFarm.setDescription("Chưa có mô tả");
+        newFarm.setCreatedAt(LocalDateTime.now());
+        
+        return farmRepository.save(newFarm);
+    }
 }

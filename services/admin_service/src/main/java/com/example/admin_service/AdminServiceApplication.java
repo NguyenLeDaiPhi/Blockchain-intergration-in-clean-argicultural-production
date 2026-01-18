@@ -9,7 +9,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 @EnableFeignClients
 @SpringBootApplication
 @EnableJpaRepositories(basePackages = "com.example.admin_service.repository")
-@EntityScan(basePackages = "com.example.admin_service.entity")  // THÊM DÒNG NÀY
+@EntityScan(basePackages = "com.example.admin_service.entity") 
 public class AdminServiceApplication {
 
     public static void main(String[] args) {
