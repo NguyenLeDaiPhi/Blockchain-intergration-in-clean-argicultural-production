@@ -1,4 +1,4 @@
-package com.bicap.trading_order_service.dto;
+package com.example.admin_service.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

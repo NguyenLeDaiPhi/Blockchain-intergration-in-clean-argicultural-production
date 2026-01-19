@@ -155,6 +155,10 @@ app.post('/logout', (req, res) => {
 const adminRouter = require('./admin');
 app.use('/', adminRouter);
 
+// Mount Admin Order routes (Categories, Products, Orders)
+const adminOrderRouter = require('./adminOrder');
+app.use('/', adminOrderRouter);
+
 app.listen(port, () => {
     console.log(`Server started on http://localhost:${port}`);
 });

@@ -1,4 +1,4 @@
-package main.java.com.bicap.trading_order_service.entity;
+package com.bicap.trading_order_service.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

@@ -1,4 +1,4 @@
-package com.bicap.trading_order_service.dto;
+package com.example.admin_service.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ProductResponseDTO {
+public class AdminProductResponseDTO {
     
     private Long id;
     private String name;

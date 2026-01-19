@@ -1,4 +1,4 @@
-package main.java.com.bicap.trading_order_service.controller;
+package com.bicap.trading_order_service.controller;
 
 import com.bicap.trading_order_service.dto.CategoryResponseDTO;
 import com.bicap.trading_order_service.service.ICategoryService;
@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/categories")
+@RequestMapping("/api/categories")
 @Tag(name = "Public Category API", description = "Public APIs để lấy danh sách danh mục (dùng cho Admin, Farmer, và User)")
 public class CategoryController {
 

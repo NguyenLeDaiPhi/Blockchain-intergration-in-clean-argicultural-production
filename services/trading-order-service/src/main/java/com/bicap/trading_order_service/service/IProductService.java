@@ -1,10 +1,10 @@
 package com.bicap.trading_order_service.service;
 
-import com.bicap.trading_order_service.dto.AdminProductResponseDTO;
+import com.bicap.trading_order_service.dto.ProductResponseDTO;
 import com.bicap.trading_order_service.dto.BanProductRequestDTO;
 import org.springframework.data.domain.Page;
 
-public interface IAdminProductService {
+public interface IProductService {
 
     /**
      * Lấy danh sách sản phẩm với bộ lọc (dành cho Admin)
@@ -15,7 +15,7 @@ public interface IAdminProductService {
      * @param size Số lượng mỗi trang
      * @return Page<AdminProductResponseDTO>
      */
-    Page<AdminProductResponseDTO> getProductsWithFilter(String keyword, String status, Long farmId, int page, int size);
+    Page<ProductResponseDTO> getProductsWithFilter(String keyword, String status, Long farmId, int page, int size);
 
     /**
      * Khóa sản phẩm (Ban)
@@ -23,21 +23,21 @@ public interface IAdminProductService {
      * @param request Lý do khóa
      * @return AdminProductResponseDTO
      */
-    AdminProductResponseDTO banProduct(Long productId, BanProductRequestDTO request);
+    ProductResponseDTO banProduct(Long productId, BanProductRequestDTO request);
 
     /**
      * Mở khóa sản phẩm (Unban)
      * @param productId ID sản phẩm
      * @return AdminProductResponseDTO
      */
-    AdminProductResponseDTO unbanProduct(Long productId);
+    ProductResponseDTO unbanProduct(Long productId);
 
     /**
      * Lấy chi tiết sản phẩm theo ID (Admin view)
      * @param productId ID sản phẩm
      * @return AdminProductResponseDTO
      */
-    AdminProductResponseDTO getProductById(Long productId);
+    ProductResponseDTO getProductById(Long productId);
 
     /**
      * Đếm số sản phẩm theo status

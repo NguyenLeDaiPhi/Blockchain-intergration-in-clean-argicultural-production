@@ -1,13 +1,12 @@
-package com.bicap.trading_order_service.controller;
+package com.example.admin_service.controller;
 
-import com.bicap.trading_order_service.service.ICategoryService;
+import com.example.admin_service.client.TradingCategoryServiceClient;
+import com.example.admin_service.dto.CategoryRequestDTO;
+import com.example.admin_service.dto.CategoryResponseDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-
-import com.bicap.trading_order_service.dto.CategoryRequestDTO;
-import com.bicap.trading_order_service.dto.CategoryResponseDTO;
-
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,11 +18,8 @@ import java.util.List;
 @Tag(name = "Admin Category Management", description = "APIs quản lý danh mục sản phẩm dành cho Admin")
 public class AdminCategoryController {
 
-    private final ICategoryService categoryService;
-
-    public AdminCategoryController(ICategoryService categoryService) {
-        this.categoryService = categoryService;
-    }
+    @Autowired
+    private TradingCategoryServiceClient tradingCategoryServiceClient;
 
     /**
      * POST /api/v1/admin/categories - Tạo danh mục mới
@@ -31,7 +27,7 @@ public class AdminCategoryController {
     @PostMapping
     @Operation(summary = "Tạo danh mục mới", description = "Admin tạo danh mục sản phẩm mới để Farmer có thể chọn khi đăng bài")
     public ResponseEntity<CategoryResponseDTO> createCategory(@Valid @RequestBody CategoryRequestDTO request) {
-        CategoryResponseDTO createdCategory = categoryService.createCategory(request);
+        CategoryResponseDTO createdCategory = tradingCategoryServiceClient.createCategory(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdCategory);
     }
 
@@ -43,7 +39,7 @@ public class AdminCategoryController {
     public ResponseEntity<CategoryResponseDTO> updateCategory(
             @PathVariable Long id,
             @Valid @RequestBody CategoryRequestDTO request) {
-        CategoryResponseDTO updatedCategory = categoryService.updateCategory(id, request);
+        CategoryResponseDTO updatedCategory = tradingCategoryServiceClient.updateCategory(id, request);
         return ResponseEntity.ok(updatedCategory);
     }
 
@@ -53,7 +49,7 @@ public class AdminCategoryController {
     @GetMapping
     @Operation(summary = "Lấy tất cả danh mục", description = "Admin xem tất cả danh mục (bao gồm cả danh mục đã ẩn)")
     public ResponseEntity<List<CategoryResponseDTO>> getAllCategories() {
-        return ResponseEntity.ok(categoryService.getAllCategories());
+        return ResponseEntity.ok(tradingCategoryServiceClient.getAllCategories());
     }
 
     /**
@@ -62,7 +58,7 @@ public class AdminCategoryController {
     @GetMapping("/{id}")
     @Operation(summary = "Lấy chi tiết danh mục", description = "Xem chi tiết một danh mục theo ID")
     public ResponseEntity<CategoryResponseDTO> getCategoryById(@PathVariable Long id) {
-        return ResponseEntity.ok(categoryService.getCategoryById(id));
+        return ResponseEntity.ok(tradingCategoryServiceClient.getCategoryById(id));
     }
 
     /**
@@ -71,7 +67,7 @@ public class AdminCategoryController {
     @DeleteMapping("/{id}")
     @Operation(summary = "Ẩn danh mục", description = "Soft delete - chuyển danh mục thành trạng thái inactive")
     public ResponseEntity<String> deleteCategory(@PathVariable Long id) {
-        categoryService.deleteCategory(id);
+        tradingCategoryServiceClient.deleteCategory(id);
         return ResponseEntity.ok("Đã ẩn danh mục thành công");
     }
 
@@ -81,7 +77,7 @@ public class AdminCategoryController {
     @DeleteMapping("/{id}/permanent")
     @Operation(summary = "Xóa vĩnh viễn danh mục", description = "Hard delete - xóa hoàn toàn danh mục khỏi database")
     public ResponseEntity<String> hardDeleteCategory(@PathVariable Long id) {
-        categoryService.hardDeleteCategory(id);
+        tradingCategoryServiceClient.hardDeleteCategory(id);
         return ResponseEntity.ok("Đã xóa vĩnh viễn danh mục");
     }
 }

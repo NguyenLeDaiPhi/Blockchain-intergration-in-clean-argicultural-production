@@ -1,6 +1,6 @@
 package com.bicap.trading_order_service.service.impl;
 
-import com.bicap.trading_order_service.dto.AdminProductResponseDTO;
+import com.bicap.trading_order_service.dto.ProductResponseDTO;
 import com.bicap.trading_order_service.dto.BanProductRequestDTO;
 import com.bicap.trading_order_service.dto.CategoryResponseDTO;
 import com.bicap.trading_order_service.entity.Category;
@@ -8,7 +8,7 @@ import com.bicap.trading_order_service.entity.FarmManager;
 import com.bicap.trading_order_service.entity.MarketplaceProduct;
 import com.bicap.trading_order_service.repository.CategoryRepository;
 import com.bicap.trading_order_service.repository.MarketplaceProductRepository;
-import com.bicap.trading_order_service.service.IAdminProductService;
+import com.bicap.trading_order_service.service.IProductService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -17,29 +17,29 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class AdminProductServiceImpl implements IAdminProductService {
+public class ProductServiceImpl implements IProductService {
 
     private final MarketplaceProductRepository productRepository;
     private final CategoryRepository categoryRepository;
 
-    public AdminProductServiceImpl(MarketplaceProductRepository productRepository,
+    public ProductServiceImpl(MarketplaceProductRepository productRepository,
                                    CategoryRepository categoryRepository) {
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
     }
 
     @Override
-    public Page<AdminProductResponseDTO> getProductsWithFilter(String keyword, String status, Long farmId, int page, int size) {
+    public Page<ProductResponseDTO> getProductsWithFilter(String keyword, String status, Long farmId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         
         Page<MarketplaceProduct> productPage = productRepository.findWithFilters(keyword, status, farmId, pageable);
         
-        return productPage.map(this::mapToAdminDTO);
+        return productPage.map(this::mapToDTO);
     }
 
     @Override
     @Transactional
-    public AdminProductResponseDTO banProduct(Long productId, BanProductRequestDTO request) {
+    public ProductResponseDTO banProduct(Long productId, BanProductRequestDTO request) {
         MarketplaceProduct product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm với ID: " + productId));
 
@@ -52,12 +52,12 @@ public class AdminProductServiceImpl implements IAdminProductService {
         product.setBanReason(request.getReason());
 
         MarketplaceProduct savedProduct = productRepository.save(product);
-        return mapToAdminDTO(savedProduct);
+        return mapToDTO(savedProduct);
     }
 
     @Override
     @Transactional
-    public AdminProductResponseDTO unbanProduct(Long productId) {
+    public ProductResponseDTO unbanProduct(Long productId) {
         MarketplaceProduct product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm với ID: " + productId));
 
@@ -70,14 +70,14 @@ public class AdminProductServiceImpl implements IAdminProductService {
         product.setBanReason(null); // Xóa lý do ban
 
         MarketplaceProduct savedProduct = productRepository.save(product);
-        return mapToAdminDTO(savedProduct);
+        return mapToDTO(savedProduct);
     }
 
     @Override
-    public AdminProductResponseDTO getProductById(Long productId) {
+    public ProductResponseDTO getProductById(Long productId) {
         MarketplaceProduct product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm với ID: " + productId));
-        return mapToAdminDTO(product);
+        return mapToDTO(product);
     }
 
     @Override
@@ -86,10 +86,10 @@ public class AdminProductServiceImpl implements IAdminProductService {
     }
 
     /**
-     * Map entity sang AdminDTO với thông tin Farm/User
+     * Map entity sang DTO với thông tin Farm/User
      */
-    private AdminProductResponseDTO mapToAdminDTO(MarketplaceProduct product) {
-        AdminProductResponseDTO.AdminProductResponseDTOBuilder builder = AdminProductResponseDTO.builder()
+    private ProductResponseDTO mapToDTO(MarketplaceProduct product) {
+        ProductResponseDTO.ProductResponseDTOBuilder builder = ProductResponseDTO.builder()
                 .id(product.getId())
                 .name(product.getName())
                 .category(product.getCategory())

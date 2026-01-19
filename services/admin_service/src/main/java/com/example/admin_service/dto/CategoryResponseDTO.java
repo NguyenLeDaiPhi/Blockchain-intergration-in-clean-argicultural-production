@@ -1,4 +1,4 @@
-package com.bicap.trading_order_service.dto;
+package com.example.admin_service.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -1,4 +1,4 @@
-package main.java.com.bicap.trading_order_service.service.impl;
+package com.bicap.trading_order_service.service.impl;
 
 import com.bicap.trading_order_service.dto.CategoryRequestDTO;
 import com.bicap.trading_order_service.dto.CategoryResponseDTO;

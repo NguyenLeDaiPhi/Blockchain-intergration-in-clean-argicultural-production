@@ -1,13 +1,13 @@
-package com.bicap.trading_order_service.controller;
+package com.example.admin_service.controller;
 
-import com.bicap.trading_order_service.dto.AdminProductResponseDTO;
-import com.bicap.trading_order_service.dto.BanProductRequestDTO;
-import com.bicap.trading_order_service.service.IAdminProductService;
+import com.example.admin_service.client.TradingProductServiceClient;
+import com.example.admin_service.dto.AdminProductResponseDTO;
+import com.example.admin_service.dto.BanProductRequestDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.data.domain.Page;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,11 +19,8 @@ import java.util.Map;
 @Tag(name = "Admin Product Monitoring", description = "APIs giám sát sản phẩm dành cho Admin")
 public class AdminProductController {
 
-    private final IAdminProductService adminProductService;
-
-    public AdminProductController(IAdminProductService adminProductService) {
-        this.adminProductService = adminProductService;
-    }
+    @Autowired
+    private TradingProductServiceClient tradingProductServiceClient;
 
     /**
      * GET /api/v1/admin/products - Lấy danh sách sản phẩm với bộ lọc
@@ -31,7 +28,7 @@ public class AdminProductController {
     @GetMapping
     @Operation(summary = "Lấy danh sách sản phẩm", 
                description = "Admin xem danh sách sản phẩm với bộ lọc: keyword, status (ACTIVE/BANNED/OUT_OF_STOCK), farmId")
-    public ResponseEntity<Page<AdminProductResponseDTO>> getProducts(
+    public ResponseEntity<Map<String, Object>> getProducts(
             @Parameter(description = "Từ khóa tìm kiếm theo tên sản phẩm")
             @RequestParam(required = false) String keyword,
             
@@ -47,7 +44,7 @@ public class AdminProductController {
             @Parameter(description = "Số lượng mỗi trang")
             @RequestParam(defaultValue = "10") int size
     ) {
-        Page<AdminProductResponseDTO> products = adminProductService.getProductsWithFilter(keyword, status, farmId, page, size);
+        Map<String, Object> products = tradingProductServiceClient.getProducts(keyword, status, farmId, page, size);
         return ResponseEntity.ok(products);
     }
 
@@ -57,7 +54,7 @@ public class AdminProductController {
     @GetMapping("/{id}")
     @Operation(summary = "Lấy chi tiết sản phẩm", description = "Xem chi tiết một sản phẩm theo ID")
     public ResponseEntity<AdminProductResponseDTO> getProductById(@PathVariable Long id) {
-        return ResponseEntity.ok(adminProductService.getProductById(id));
+        return ResponseEntity.ok(tradingProductServiceClient.getProductById(id));
     }
 
     /**
@@ -70,7 +67,7 @@ public class AdminProductController {
             @PathVariable Long id,
             @Valid @RequestBody BanProductRequestDTO request
     ) {
-        AdminProductResponseDTO bannedProduct = adminProductService.banProduct(id, request);
+        AdminProductResponseDTO bannedProduct = tradingProductServiceClient.banProduct(id, request);
         return ResponseEntity.ok(bannedProduct);
     }
 
@@ -81,7 +78,7 @@ public class AdminProductController {
     @Operation(summary = "Mở khóa sản phẩm", 
                description = "Admin mở khóa sản phẩm sau khi Farmer đã sửa lỗi và khiếu nại thành công")
     public ResponseEntity<AdminProductResponseDTO> unbanProduct(@PathVariable Long id) {
-        AdminProductResponseDTO unbannedProduct = adminProductService.unbanProduct(id);
+        AdminProductResponseDTO unbannedProduct = tradingProductServiceClient.unbanProduct(id);
         return ResponseEntity.ok(unbannedProduct);
     }
 
@@ -92,10 +89,14 @@ public class AdminProductController {
     @Operation(summary = "Thống kê sản phẩm", description = "Lấy số lượng sản phẩm theo từng trạng thái")
     public ResponseEntity<Map<String, Object>> getProductStatistics() {
         Map<String, Object> stats = new HashMap<>();
-        stats.put("totalActive", adminProductService.countByStatus("ACTIVE"));
-        stats.put("totalBanned", adminProductService.countByStatus("BANNED"));
-        stats.put("totalOutOfStock", adminProductService.countByStatus("OUT_OF_STOCK"));
-        stats.put("totalPending", adminProductService.countByStatus("PENDING"));
+        try {
+            stats.put("totalActive", tradingProductServiceClient.countByStatus("ACTIVE"));
+            stats.put("totalBanned", tradingProductServiceClient.countByStatus("BANNED"));
+            stats.put("totalOutOfStock", tradingProductServiceClient.countByStatus("OUT_OF_STOCK"));
+            stats.put("totalPending", tradingProductServiceClient.countByStatus("PENDING"));
+        } catch (Exception e) {
+            stats.put("error", "Unable to fetch product statistics: " + e.getMessage());
+        }
         return ResponseEntity.ok(stats);
     }
 }

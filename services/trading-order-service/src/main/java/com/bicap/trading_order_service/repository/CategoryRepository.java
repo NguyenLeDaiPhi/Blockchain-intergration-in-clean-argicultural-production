@@ -1,4 +1,4 @@
-package main.java.com.bicap.trading_order_service.repository;
+package com.bicap.trading_order_service.repository;
 
 import com.bicap.trading_order_service.entity.Category;
 import org.springframework.data.jpa.repository.JpaRepository;

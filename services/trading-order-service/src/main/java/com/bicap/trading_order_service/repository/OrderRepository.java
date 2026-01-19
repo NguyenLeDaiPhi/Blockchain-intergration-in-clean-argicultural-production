@@ -52,4 +52,12 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     // Lấy đơn hàng trong ngày
     @Query("SELECT o FROM Order o WHERE o.createdAt >= :startDate AND o.createdAt < :endDate ORDER BY o.createdAt DESC")
     List<Order> findOrdersToday(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+
+    // === ADMIN APIs ===
+    // Lấy tất cả đơn hàng
+    @Query("SELECT o FROM Order o ORDER BY o.createdAt DESC")
+    List<Order> findAllOrdersForAdmin();
+
+    // Lấy đơn hàng theo trạng thái
+    List<Order> findByStatusOrderByCreatedAtDesc(String status);
 }
