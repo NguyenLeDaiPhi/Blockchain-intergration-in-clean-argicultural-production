@@ -15,10 +15,10 @@ public class BlockchainProducer {
     @Autowired
     private RabbitTemplate rabbitTemplate;
 
-    @Value("${bicap.rabbitmq.exchange}")
+    @Value("${bicap.blockchain.exchange}")
     private String exchange;
 
-    @Value("${bicap.rabbitmq.routing-key.request}")
+    @Value("${bicap.blockchain.routing_key}")
     private String routingKey;
 
     // Hàm tính Hash SHA-256

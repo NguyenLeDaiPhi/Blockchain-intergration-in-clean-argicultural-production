@@ -24,6 +24,7 @@ public class ExportBatchController {
     @GetMapping(value = "/qr/{batchId}", produces = MediaType.IMAGE_PNG_VALUE)
     public byte[] getQrImage(@PathVariable Long batchId) throws Exception {
         // Đây chỉ là demo tạo ảnh động để test
-        return com.bicap.farm_management.util.QRCodeGenerator.generateQRCodeImage("Batch ID: " + batchId, 250, 250);
+        String base64 = com.bicap.farm_management.util.QRCodeGenerator.generateQRCodeImage("Batch ID: " + batchId, 250, 250);
+        return java.util.Base64.getDecoder().decode(base64);
     }
 }
