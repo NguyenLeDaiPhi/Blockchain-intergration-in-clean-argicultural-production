@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="vi">
+<%- include('../partials/header') %>
+<body>
+    <div class="d-flex">
+        <%- include('../partials/sidebar') %>
+        
+        <div class="flex-grow-1 p-4" style="margin-left: 250px; background-color: #f8f9fa; min-height: 100vh;">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>👤 Quản lý Tài xế</h2>
+                <button class="btn btn-success">+ Thêm tài xế</button>
+            </div>
+
+            <div class="card shadow-sm">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Họ tên</th>
+                            <th>Số điện thoại</th>
+                            <th>Bằng lái</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (drivers && drivers.length > 0) { %>
+                            <% drivers.forEach(function(driver) { %>
+                                <tr>
+                                    <td><%= driver.id %></td>
+                                    <td><%= driver.name %></td>
+                                    <td><%= driver.phone %></td>
+                                    <td><%= driver.license %></td>
+                                </tr>
+                            <% }); %>
+                        <% } else { %>
+                            <tr><td colspan="4" class="text-center">Chưa có tài xế nào trong hệ thống.</td></tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+            <%- include('../partials/footer') %>
+        </div>
+    </div>
+</body>
+</html>

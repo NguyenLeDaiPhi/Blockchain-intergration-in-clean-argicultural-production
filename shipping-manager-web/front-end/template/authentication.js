@@ -1,5 +1,5 @@
 const path = require('path');
-require('dotenv').config({ path: path.resolve(__dirname, '..', 'config', '.env') });
+require('dotenv').config({ path: path.resolve(__dirname, '../../config/.env') });
 
 const axios = require('axios'); // Dùng axios thay cho node-fetch
 const { serialize } = require('cookie');  // FIX: Use destructuring to get the serialize function
@@ -8,7 +8,7 @@ const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL;
 
 let apiService;
 try {
-    apiService = require('../config/apiService'); 
+    apiService = require('../../config/apiService'); 
 } catch (e) {
     console.error("CRITICAL ERROR: Không thể load file apiService.js.");
     console.error("Chi tiết lỗi:", e); // In ra lỗi cụ thể để debug
@@ -31,12 +31,18 @@ const JWT_SECRET_STRING = 'YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9uC
 // Convert the Base64 string to a Buffer, exactly like Java's Decoders.BASE64.decode()
 const JWT_SECRET = Buffer.from(JWT_SECRET_STRING, 'base64');
 
-app.set("views", path.join(__dirname, "..", "front-end", "template"));
+app.set("views", __dirname);
 app.set('view engine', "ejs");
 
-app.use(express.static(path.join(__dirname, "..","front-end")));
+app.use(express.static(path.join(__dirname, "..")));
 app.use(bodyParser.urlencoded( { extended: false }));
 app.use(cookieParser());
+
+// Middleware: Truyền biến 'path' xuống View để highlight Sidebar
+app.use((req, res, next) => {
+    res.locals.path = req.path;
+    next();
+});
 
 // -------------------------------------------------------------
 // Utility: Clear Cookie
@@ -166,20 +172,52 @@ app.get('/dashboard', requireAuth, async (req, res) => {
     });
 });
 
+// --- 1. Trang Đơn hàng chờ (Orders) ---
+app.get('/orders', requireAuth, async (req, res) => {
+    const token = req.cookies.auth_token;
+    const pendingOrders = await apiService.getConfirmedOrders(token);
+    
+    res.render('pages/orders', {
+        user: { username: req.user.sub },
+        orders: pendingOrders || []
+    });
+});
+
+// --- 2. Trang Quản lý Vận chuyển (Shipments) ---
 app.get('/shipments', requireAuth, async (req, res) => {
     const token = req.cookies.auth_token;
     const shipments = await apiService.getAllShipments(token);
     const drivers = await apiService.getAllDrivers(token);
     const vehicles = await apiService.getAllVehicles(token);
-    const pendingOrders = await apiService.getConfirmedOrders(token);
 
-    res.render('shipments', {
+    res.render('pages/shipments', {
         user: { username: req.user.sub },
-        shipments,
-        drivers,
-        vehicles,
-        pendingOrders
+        shipments: shipments || [],
+        drivers: drivers || [],
+        vehicles: vehicles || []
     });
+});
+
+// --- 3. Trang Quản lý Xe (Vehicles) ---
+app.get('/vehicles', requireAuth, async (req, res) => {
+    const token = req.cookies.auth_token;
+    const vehicles = await apiService.getAllVehicles(token);
+    res.render('pages/vehicles', { user: { username: req.user.sub }, vehicles: vehicles || [] });
+});
+
+// --- 4. Trang Quản lý Tài xế (Drivers) ---
+app.get('/drivers', requireAuth, async (req, res) => {
+    const token = req.cookies.auth_token;
+    const drivers = await apiService.getAllDrivers(token);
+    res.render('pages/drivers', { user: { username: req.user.sub }, drivers: drivers || [] });
+});
+
+// --- 5. Trang Báo cáo (Reports) ---
+app.get('/reports', requireAuth, async (req, res) => {
+    const token = req.cookies.auth_token;
+    // Giả sử lấy báo cáo tổng hợp
+    const report = await apiService.getSummaryReport(token);
+    res.render('pages/reports', { user: { username: req.user.sub }, report: report || {} });
 });
 
 app.post('/shipments/create', requireAuth, async (req, res) => {

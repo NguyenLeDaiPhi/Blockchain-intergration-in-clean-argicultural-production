@@ -18,13 +18,13 @@ public class VehicleController {
     private final VehicleService vehicleService;
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('SHIPPING_MANAGER', 'ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_SHIPPINGMANAGER', 'ROLE_ADMIN')")
     public ResponseEntity<List<Vehicle>> getAllVehicles() {
         return ResponseEntity.ok(vehicleService.getAllVehicles());
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('SHIPPING_MANAGER', 'ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_SHIPPINGMANAGER', 'ROLE_ADMIN')")
     public ResponseEntity<Vehicle> createVehicle(@RequestBody Vehicle vehicle) {
         return ResponseEntity.ok(vehicleService.createVehicle(vehicle));
     }

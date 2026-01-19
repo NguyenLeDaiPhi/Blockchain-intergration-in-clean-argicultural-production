@@ -29,10 +29,12 @@ public class SecurityConfig {
                 // 1. Cho phép Swagger truy cập tự do (để bạn còn test)
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                 
-                // 2. CHỈ CHO PHÉP ADMIN VÀ FARM_MANAGER TRUY CẬP CÁC API NGHIỆP VỤ
+                // 2. CHO PHÉP ADMIN, FARM_MANAGER VÀ SHIPPING_MANAGER TRUY CẬP CÁC API NGHIỆP VỤ
+                // Lưu ý: Shipping Manager cần gọi để lấy orders, nên tạm thời cho phép
                 // Lưu ý: Spring Security tự động thêm tiền tố ROLE_ nếu dùng hasRole, 
                 // nhưng vì trong DB bạn đã lưu sẵn chữ "ROLE_" (ví dụ ROLE_ADMIN), 
                 // nên ta dùng hasAnyAuthority để so sánh chính xác chuỗi đó.
+                .requestMatchers("/api/orders").hasAnyAuthority("ROLE_ADMIN", "ROLE_FARMMANAGER", "ROLE_SHIPPINGMANAGER")
                 .requestMatchers("/api/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_FARMMANAGER")
                 
                 // 3. Các request khác phải xác thực

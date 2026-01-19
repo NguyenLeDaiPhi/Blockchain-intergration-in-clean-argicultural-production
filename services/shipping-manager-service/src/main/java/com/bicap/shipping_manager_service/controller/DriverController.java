@@ -18,19 +18,19 @@ public class DriverController {
     private final DriverService driverService;
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('SHIPPING_MANAGER', 'ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_SHIPPINGMANAGER', 'ROLE_ADMIN')")
     public ResponseEntity<List<Driver>> getAllDrivers() {
         return ResponseEntity.ok(driverService.getAllDrivers());
     }
 
     @GetMapping("/search")
-    @PreAuthorize("hasAnyRole('SHIPPING_MANAGER', 'ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_SHIPPINGMANAGER', 'ROLE_ADMIN')")
     public ResponseEntity<List<Driver>> searchDrivers(@RequestParam String name) {
         return ResponseEntity.ok(driverService.searchDriversByName(name));
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('SHIPPING_MANAGER', 'ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_SHIPPINGMANAGER', 'ROLE_ADMIN')")
     public ResponseEntity<Driver> createDriver(@RequestBody Driver driver) {
         return ResponseEntity.ok(driverService.createDriver(driver));
     }

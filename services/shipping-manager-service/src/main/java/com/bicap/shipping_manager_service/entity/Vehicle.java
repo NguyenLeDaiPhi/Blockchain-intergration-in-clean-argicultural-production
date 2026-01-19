@@ -1,18 +1,21 @@
 package com.bicap.shipping_manager_service.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
-@Data
 @Table(name = "vehicles")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Vehicle {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String licensePlate; // Biển số xe
-    private String model;
-    private Double capacity; // Tải trọng (tấn)
-    private String status; // AVAILABLE, MAINTENANCE, IN_USE
+    private String plate;
+    private String type;
+    private String status; // AVAILABLE, BUSY
 }

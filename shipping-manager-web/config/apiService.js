@@ -18,6 +18,9 @@ const apiService = {
             return response.data;
         } catch (error) {
             console.error("Error fetching report:", error.message);
+            if (error.response) {
+                console.error("Backend Details:", error.response.data);
+            }
             return null;
         }
     },
@@ -29,6 +32,9 @@ const apiService = {
             return response.data;
         } catch (error) {
             console.error("Error fetching shipments:", error.message);
+            if (error.response) {
+                console.error("Backend Details:", error.response.data);
+            }
             return [];
         }
     },

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="vi">
+<%- include('../partials/header') %>
+<body>
+    <div class="d-flex">
+        <%- include('../partials/sidebar') %>
+        
+        <div class="flex-grow-1 p-4" style="margin-left: 250px; background-color: #f8f9fa; min-height: 100vh;">
+            <h2 class="mb-4">📊 Báo cáo & Thống kê</h2>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Gửi báo cáo tổng hợp cho Admin</h5>
+                    <form>
+                        <div class="mb-3">
+                            <label class="form-label">Tiêu đề báo cáo</label>
+                            <input type="text" class="form-control" placeholder="VD: Báo cáo vận chuyển tháng 10">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Nội dung chi tiết</label>
+                            <textarea class="form-control" rows="5"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Gửi báo cáo</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Thống kê nhanh</h5>
+                    <div class="row text-center">
+                        <div class="col-md-4">
+                            <div class="p-3 border bg-light rounded">
+                                <h3><%= report.totalShipments || 0 %></h3>
+                                <p>Tổng chuyến hàng</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <%- include('../partials/footer') %>
+        </div>
+    </div>
+</body>
+</html>

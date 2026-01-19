@@ -20,14 +20,14 @@ public class ShipmentController {
 
     // API: Lấy danh sách tất cả vận đơn (Admin/Manager)
     @GetMapping
-    @PreAuthorize("hasAnyRole('SHIPPING_MANAGER', 'ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_SHIPPINGMANAGER', 'ROLE_ADMIN')")
     public ResponseEntity<List<Shipment>> getAllShipments() {
         return ResponseEntity.ok(shipmentService.getAllShipments());
     }
 
     // API: Tạo vận đơn mới
     @PostMapping
-    @PreAuthorize("hasAnyRole('SHIPPING_MANAGER', 'ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_SHIPPINGMANAGER', 'ROLE_ADMIN')")
     public ResponseEntity<Shipment> createShipment(@RequestBody Shipment shipment) {
         return ResponseEntity.ok(shipmentService.createShipment(
                 shipment.getOrderId(),
@@ -38,7 +38,7 @@ public class ShipmentController {
 
     // API: Điều phối xe và tài xế
     @PutMapping("/{id}/assign")
-    @PreAuthorize("hasAnyRole('SHIPPING_MANAGER', 'ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_SHIPPINGMANAGER', 'ROLE_ADMIN')")
     public ResponseEntity<Shipment> assignDriverAndVehicle(
             @PathVariable Long id,
             @RequestParam Long driverId,
@@ -48,14 +48,14 @@ public class ShipmentController {
 
     // API: Cập nhật trạng thái vận đơn
     @PutMapping("/{id}/status")
-    @PreAuthorize("hasAnyRole('DRIVER', 'SHIPPING_MANAGER', 'ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_DELIVERYDRIVER', 'ROLE_SHIPPINGMANAGER', 'ROLE_ADMIN')")
     public ResponseEntity<Shipment> updateStatus(@PathVariable Long id, @RequestParam ShipmentStatus status) {
         return ResponseEntity.ok(shipmentService.updateStatus(id, status));
     }
 
     // API: Lấy danh sách đơn hàng của tài xế đang đăng nhập (Mobile App)
     @GetMapping("/my-shipments")
-    @PreAuthorize("hasRole('DRIVER')")
+    @PreAuthorize("hasAuthority('ROLE_DELIVERYDRIVER')")
     public ResponseEntity<List<Shipment>> getMyShipments() {
         return ResponseEntity.ok(shipmentService.getMyShipments());
     }

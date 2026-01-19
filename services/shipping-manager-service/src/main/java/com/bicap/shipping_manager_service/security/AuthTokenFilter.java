@@ -1,70 +1,104 @@
 package com.bicap.shipping_manager_service.security;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Arrays;
+import java.security.Key;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
-@RequiredArgsConstructor
 public class AuthTokenFilter extends OncePerRequestFilter {
 
-    private static final Logger logger = LoggerFactory.getLogger(AuthTokenFilter.class);
-    private final JwtUtils jwtUtils;
+    @Value("${bicap.app.jwtSecret}")
+    private String jwtSecret;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-            throws ServletException, IOException {
+    protected void doFilterInternal(
+            @NonNull HttpServletRequest request,
+            @NonNull HttpServletResponse response,
+            @NonNull FilterChain filterChain
+    ) throws ServletException, IOException {
+        
         try {
             String jwt = parseJwt(request);
-            if (jwt != null && jwtUtils.validateJwtToken(jwt)) {
-                Claims claims = jwtUtils.getClaimsFromJwtToken(jwt);
-                
-                Long userId = claims.get("userId", Long.class);
+            if (jwt != null && validateJwtToken(jwt)) {
+                Claims claims = Jwts.parserBuilder()
+                        .setSigningKey(getSigningKey())
+                        .build()
+                        .parseClaimsJws(jwt)
+                        .getBody();
+
                 String username = claims.getSubject();
-                String email = claims.get("email", String.class);
-                String rolesStr = claims.get("roles", String.class);
                 
-                List<String> roles = (rolesStr != null && !rolesStr.isEmpty()) 
-                        ? Arrays.asList(rolesStr.split(",")) 
-                        : List.of();
+                // Trích xuất Roles từ Claim "roles" (được Auth Service gửi sang)
+                // Lưu ý: Auth Service gửi roles như String (comma-separated), ví dụ: "ROLE_SHIPPING_MANAGER,ROLE_USER"
+                String rolesString = claims.get("roles", String.class);
+                List<String> roles = null;
+                
+                if (rolesString != null && !rolesString.isEmpty()) {
+                    // Parse comma-separated string thành List
+                    roles = java.util.Arrays.asList(rolesString.split(","));
+                }
+                
+                logger.info("JWT Auth - Username: " + username + " | Roles extracted: " + roles);
 
-                UserDetailsImpl userDetails = UserDetailsImpl.build(userId, username, email, roles);
+                List<SimpleGrantedAuthority> authorities = (roles != null && !roles.isEmpty()) 
+                    ? roles.stream()
+                        .map(String::trim) // Remove whitespace
+                        .map(SimpleGrantedAuthority::new)
+                        .collect(Collectors.toList())
+                    : Collections.emptyList();
 
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(
-                                userDetails,
-                                null,
-                                userDetails.getAuthorities());
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                        username, null, authorities);
+                
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         } catch (Exception e) {
             logger.error("Cannot set user authentication: {}", e);
         }
+
         filterChain.doFilter(request, response);
     }
 
     private String parseJwt(HttpServletRequest request) {
         String headerAuth = request.getHeader("Authorization");
-        if (StringUtils.hasText(headerAuth) && headerAuth.startsWith("Bearer ")) {
+        if (headerAuth != null && headerAuth.startsWith("Bearer ")) {
             return headerAuth.substring(7);
         }
         return null;
+    }
+
+    private boolean validateJwtToken(String authToken) {
+        try {
+            Jwts.parserBuilder().setSigningKey(getSigningKey()).build().parseClaimsJws(authToken);
+            return true;
+        } catch (Exception e) {
+            logger.error("Invalid JWT token: {}", e);
+        }
+        return false;
+    }
+
+    private Key getSigningKey() {
+        byte[] keyBytes = Decoders.BASE64.decode(jwtSecret);
+        return Keys.hmacShaKeyFor(keyBytes);
     }
 }

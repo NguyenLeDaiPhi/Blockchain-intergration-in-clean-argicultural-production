@@ -4,13 +4,11 @@ import com.bicap.shipping_manager_service.entity.Vehicle;
 import com.bicap.shipping_manager_service.repository.VehicleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class VehicleService {
-
     private final VehicleRepository vehicleRepository;
 
     public List<Vehicle> getAllVehicles() {
@@ -18,9 +16,7 @@ public class VehicleService {
     }
 
     public Vehicle createVehicle(Vehicle vehicle) {
-        if (vehicleRepository.existsByLicensePlate(vehicle.getLicensePlate())) {
-            throw new RuntimeException("Biển số xe đã tồn tại: " + vehicle.getLicensePlate());
-        }
+        if (vehicle.getStatus() == null) vehicle.setStatus("AVAILABLE");
         return vehicleRepository.save(vehicle);
     }
 }

@@ -15,11 +15,11 @@ public class DriverService {
         return driverRepository.findAll();
     }
 
-    public List<Driver> searchDriversByName(String name) {
-        return driverRepository.findByFullNameContainingIgnoreCase(name);
-    }
-
     public Driver createDriver(Driver driver) {
         return driverRepository.save(driver);
+    }
+    
+    public List<Driver> searchDriversByName(String name) {
+        return driverRepository.findByNameContainingIgnoreCase(name);
     }
 }
