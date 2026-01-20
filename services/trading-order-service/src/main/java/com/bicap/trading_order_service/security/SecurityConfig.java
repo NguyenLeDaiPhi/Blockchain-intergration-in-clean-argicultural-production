@@ -40,6 +40,9 @@ public class SecurityConfig {
                 // Public API - Categories (cho Farmer chọn khi đăng sản phẩm)
                 .requestMatchers(HttpMethod.GET, "/api/v1/categories/**").permitAll()
 
+                // Internal API - Allow admin-service to call (service-to-service communication)
+                .requestMatchers("/api/admin/**").permitAll()
+
                 // 👑 Admin APIs - Category & Product Management
                 .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
 

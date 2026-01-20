@@ -79,9 +79,9 @@ app.post('/login', async(req, res) => {
     try {
         console.log('Attempting login for:', email);
         console.log('AUTH_SERVICE_URL:', AUTH_SERVICE_URL);
-        console.log('Full URL:', `${AUTH_SERVICE_URL}/api/auth/login`);
+        console.log('Full URL:', `${AUTH_SERVICE_URL}/login`);
         
-        const apiResponse = await axios.post(`${AUTH_SERVICE_URL}/api/auth/login`, { email, password }, {
+        const apiResponse = await axios.post(`${AUTH_SERVICE_URL}/login`, { email, password }, {
             headers: { 'Content-Type': 'application/json' }
         });
 
