@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="vi">
+<%- include('../partials/header') %>
+<body>
+    <div class="d-flex">
+        <%- include('../partials/sidebar') %>
+        
+        <div class="flex-grow-1 p-4" style="margin-left: 250px; background-color: #f8f9fa; min-height: 100vh;">
+            <h2 class="mb-4">📦 Đơn hàng chờ vận chuyển</h2>
+            
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Mã Đơn</th>
+                                <th>Nhà bán lẻ</th>
+                                <th>Sản phẩm</th>
+                                <th>Số lượng</th>
+                                <th>Ngày đặt</th>
+                                <th>Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% if (orders && orders.length > 0) { %>
+                                <% orders.forEach(function(order) { %>
+                                    <tr>
+                                        <td>#<%= order.id %></td>
+                                        <td><%= order.retailerName || 'N/A' %></td>
+                                        <td><%= order.productName || 'Nông sản' %></td>
+                                        <td><%= order.quantity %></td>
+                                        <td><%= order.orderDate %></td>
+                                        <td>
+                                            <form action="/shipments/create" method="POST">
+                                                <input type="hidden" name="orderId" value="<%= order.id %>">
+                                                <button type="submit" class="btn btn-primary btn-sm">
+                                                    <i class="bi bi-truck"></i> Tạo Vận Chuyển
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                <% }); %>
+                            <% } else { %>
+                                <tr><td colspan="6" class="text-center">Không có đơn hàng nào cần vận chuyển.</td></tr>
+                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <%- include('../partials/footer') %>
+        </div>
+    </div>
+</body>
+</html>
