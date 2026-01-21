@@ -9,5 +9,6 @@ import java.util.List;
 @Repository
 public interface ShipmentRepository extends JpaRepository<Shipment, Long> {
     List<Shipment> findByDriverId(Long driverId);
+    List<Shipment> findByVehicleId(Long vehicleId);
     List<Shipment> findByStatus(ShipmentStatus status);
 }

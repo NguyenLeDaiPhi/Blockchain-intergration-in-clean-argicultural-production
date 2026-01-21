@@ -3,7 +3,7 @@ _transform: true
 
 services:
   - name: admin-web
-    url: http://admin-web:3002
+    url: http://admin-web:3001
     plugins:
       - name: rate-limiting
         config: 
@@ -14,7 +14,7 @@ services:
           path: /var/log/kong/admin-web.log
 
   - name: shipping-manager-web
-    url: http://shipping-manager-web:3001
+    url: http://shipping-manager-web:3003
     plugins:
       - name: rate-limiting
         config:
@@ -25,7 +25,7 @@ services:
           path: /var/log/kong/shipping-manager-web.log
 
   - name: farm-management-web
-    url: http://farm-management-web:3003
+    url: http://farm-management-web:3002
     plugins:
       - name: rate-limiting
         config:
@@ -46,7 +46,7 @@ services:
         config:
           path: /var/log/kong/farm-production-service.log
   - name: auth-service
-    url: http://auth-service:8080
+    url: http://auth-service:8085
     plugins:
       - name: rate-limiting
         config:

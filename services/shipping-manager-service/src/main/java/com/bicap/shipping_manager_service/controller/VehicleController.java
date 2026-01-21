@@ -23,9 +23,28 @@ public class VehicleController {
         return ResponseEntity.ok(vehicleService.getAllVehicles());
     }
 
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ROLE_SHIPPINGMANAGER', 'ROLE_ADMIN')")
+    public ResponseEntity<Vehicle> getVehicleById(@PathVariable Long id) {
+        return ResponseEntity.ok(vehicleService.getVehicleById(id));
+    }
+
     @PostMapping
     @PreAuthorize("hasAnyAuthority('ROLE_SHIPPINGMANAGER', 'ROLE_ADMIN')")
     public ResponseEntity<Vehicle> createVehicle(@RequestBody Vehicle vehicle) {
         return ResponseEntity.ok(vehicleService.createVehicle(vehicle));
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ROLE_SHIPPINGMANAGER', 'ROLE_ADMIN')")
+    public ResponseEntity<Vehicle> updateVehicle(@PathVariable Long id, @RequestBody Vehicle vehicle) {
+        return ResponseEntity.ok(vehicleService.updateVehicle(id, vehicle));
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ROLE_SHIPPINGMANAGER', 'ROLE_ADMIN')")
+    public ResponseEntity<Void> deleteVehicle(@PathVariable Long id) {
+        vehicleService.deleteVehicle(id);
+        return ResponseEntity.noContent().build();
     }
 }

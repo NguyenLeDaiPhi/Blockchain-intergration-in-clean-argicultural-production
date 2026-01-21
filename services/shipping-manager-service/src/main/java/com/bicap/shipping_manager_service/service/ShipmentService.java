@@ -17,6 +17,7 @@ public class ShipmentService {
     private final ShipmentRepository shipmentRepository;
     private final DriverRepository driverRepository;
     private final VehicleRepository vehicleRepository;
+    private final ShipmentProducer shipmentProducer;
 
     public List<Shipment> getAllShipments() {
         return shipmentRepository.findAll();
@@ -78,5 +79,37 @@ public class ShipmentService {
             // return shipmentRepository.findByDriverUserId(userId);
         }
         return List.of();
+    }
+
+    @Transactional
+    public void cancelShipment(Long id) {
+        Shipment shipment = shipmentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Shipment not found with id: " + id));
+        
+        // Check if shipment can be cancelled
+        if (shipment.getStatus() == ShipmentStatus.DELIVERED) {
+            throw new RuntimeException("Cannot cancel a shipment that has already been delivered");
+        }
+        
+        if (shipment.getStatus() == ShipmentStatus.CANCELLED) {
+            throw new RuntimeException("Shipment is already cancelled");
+        }
+        
+        // Update status to cancelled
+        shipment.setStatus(ShipmentStatus.CANCELLED);
+        
+        // Free up vehicle if assigned
+        if (shipment.getVehicle() != null) {
+            Vehicle vehicle = shipment.getVehicle();
+            vehicle.setStatus("AVAILABLE");
+            vehicleRepository.save(vehicle);
+        }
+        
+        shipmentRepository.save(shipment);
+        
+        // Send notification via RabbitMQ
+        if (shipment.getOrderId() != null) {
+            shipmentProducer.sendShipmentStatusUpdate(shipment.getOrderId(), "CANCELLED");
+        }
     }
 }

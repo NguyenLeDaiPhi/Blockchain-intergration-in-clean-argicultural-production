@@ -160,6 +160,18 @@ const api = {
     }
   },
 
+  cancelShipment: async (shipmentId) => {
+    try {
+      await axios.delete(`${API_BASE_URL}/shipments/${shipmentId}`, {
+        headers: getHeaders()
+      });
+      return true;
+    } catch (error) {
+      console.error('Error cancelling shipment:', error);
+      throw error.response?.data || error.message;
+    }
+  },
+
   // Drivers
   getAllDrivers: async () => {
     try {
@@ -319,6 +331,68 @@ const api = {
       return response.data;
     } catch (error) {
       console.error('Error fetching summary report:', error);
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // Driver Reports
+  getAllDriverReports: async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/reports/drivers`, {
+        headers: getHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching driver reports:', error);
+      throw error.response?.data || error.message;
+    }
+  },
+
+  getDriverReports: async (driverId) => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/reports/drivers/${driverId}`, {
+        headers: getHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching driver reports:', error);
+      throw error.response?.data || error.message;
+    }
+  },
+
+  getPendingDriverReports: async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/reports/drivers/pending`, {
+        headers: getHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching pending driver reports:', error);
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // Admin Reports
+  sendReportToAdmin: async (reportData) => {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/reports/admin`, reportData, {
+        headers: getHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error sending report to admin:', error);
+      throw error.response?.data || error.message;
+    }
+  },
+
+  getMyAdminReports: async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/reports/admin/my-reports`, {
+        headers: getHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching my admin reports:', error);
       throw error.response?.data || error.message;
     }
   },

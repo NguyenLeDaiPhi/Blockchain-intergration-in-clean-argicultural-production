@@ -23,6 +23,12 @@ public class DriverController {
         return ResponseEntity.ok(driverService.getAllDrivers());
     }
 
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ROLE_SHIPPINGMANAGER', 'ROLE_ADMIN')")
+    public ResponseEntity<Driver> getDriverById(@PathVariable Long id) {
+        return ResponseEntity.ok(driverService.getDriverById(id));
+    }
+
     @GetMapping("/search")
     @PreAuthorize("hasAnyAuthority('ROLE_SHIPPINGMANAGER', 'ROLE_ADMIN')")
     public ResponseEntity<List<Driver>> searchDrivers(@RequestParam String name) {
@@ -33,5 +39,18 @@ public class DriverController {
     @PreAuthorize("hasAnyAuthority('ROLE_SHIPPINGMANAGER', 'ROLE_ADMIN')")
     public ResponseEntity<Driver> createDriver(@RequestBody Driver driver) {
         return ResponseEntity.ok(driverService.createDriver(driver));
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ROLE_SHIPPINGMANAGER', 'ROLE_ADMIN')")
+    public ResponseEntity<Driver> updateDriver(@PathVariable Long id, @RequestBody Driver driver) {
+        return ResponseEntity.ok(driverService.updateDriver(id, driver));
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ROLE_SHIPPINGMANAGER', 'ROLE_ADMIN')")
+    public ResponseEntity<Void> deleteDriver(@PathVariable Long id) {
+        driverService.deleteDriver(id);
+        return ResponseEntity.noContent().build();
     }
 }

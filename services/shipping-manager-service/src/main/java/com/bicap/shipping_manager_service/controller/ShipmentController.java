@@ -59,4 +59,12 @@ public class ShipmentController {
     public ResponseEntity<List<Shipment>> getMyShipments() {
         return ResponseEntity.ok(shipmentService.getMyShipments());
     }
+
+    // API: Hủy vận đơn
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ROLE_SHIPPINGMANAGER', 'ROLE_ADMIN')")
+    public ResponseEntity<Void> cancelShipment(@PathVariable Long id) {
+        shipmentService.cancelShipment(id);
+        return ResponseEntity.noContent().build();
+    }
 }
