@@ -9,7 +9,6 @@ import com.bicap.trading_order_service.entity.Order;
 import com.bicap.trading_order_service.entity.OrderItem;
 import com.bicap.trading_order_service.event.OrderCompletedEvent;
 import com.bicap.trading_order_service.repository.MarketplaceProductRepository;
-import com.bicap.trading_order_service.repository.OrderItemRepository;
 import com.bicap.trading_order_service.repository.OrderRepository;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
@@ -27,7 +26,6 @@ public class OrderService implements IOrderService {
 
     public OrderService(
             OrderRepository orderRepository,
-            OrderItemRepository orderItemRepository,
             MarketplaceProductRepository productRepository,
             RabbitTemplate rabbitTemplate
     ) {
@@ -41,13 +39,13 @@ public class OrderService implements IOrderService {
      */
     @Override
     @Transactional
-    public OrderResponse createOrder(CreateOrderRequest request) {
+    public OrderResponse createOrder(
+            CreateOrderRequest request,
+            String buyerEmail
+    ) {
 
         Order order = new Order();
-
-        // ✅ THAY buyerId → buyerEmail
-        order.setBuyerEmail(request.getBuyerEmail());
-
+        order.setBuyerEmail(buyerEmail);
         order.setStatus("CREATED");
 
         BigDecimal totalAmount = BigDecimal.ZERO;
@@ -56,17 +54,23 @@ public class OrderService implements IOrderService {
 
             MarketplaceProduct product = productRepository
                     .findById(itemReq.getProductId())
-                    .orElseThrow(() -> new RuntimeException("Product not found"));
+                    .orElseThrow(() ->
+                            new RuntimeException(
+                                    "Product not found: " + itemReq.getProductId()
+                            )
+                    );
 
             OrderItem item = new OrderItem();
+            item.setOrder(order);              // ✅
+            item.setProduct(product);          // ✅ HẾT LỖI
             item.setProductId(product.getId());
             item.setQuantity(itemReq.getQuantity());
-
-            BigDecimal price = BigDecimal.valueOf(product.getPrice());
-            item.setUnitPrice(price);
+            item.setUnitPrice(BigDecimal.valueOf(product.getPrice()));
 
             BigDecimal itemTotal =
-                    price.multiply(BigDecimal.valueOf(itemReq.getQuantity()));
+                    item.getUnitPrice()
+                        .multiply(BigDecimal.valueOf(itemReq.getQuantity()));
+
             totalAmount = totalAmount.add(itemTotal);
 
             order.addItem(item);
@@ -78,24 +82,26 @@ public class OrderService implements IOrderService {
 
         return OrderResponse.fromEntity(savedOrder);
     }
+
     /**
-     * 2️⃣ Retailer hoàn tất đơn hàng
+     * 2️⃣ Shipping hoàn tất đơn
      */
     @Override
     @Transactional
     public OrderResponse completeOrder(Long orderId) {
 
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
+                .orElseThrow(() ->
+                        new RuntimeException("Order not found")
+                );
 
         order.setStatus("COMPLETED");
         order = orderRepository.save(order);
 
-        // ✅ Publish event – bỏ buyerId
         try {
             OrderCompletedEvent event = new OrderCompletedEvent(
                     order.getId(),
-                    order.getBuyerEmail(),   // ⭐ THAY buyerId → buyerEmail
+                    order.getBuyerEmail(),
                     order.getTotalAmount()
             );
 
@@ -105,14 +111,16 @@ public class OrderService implements IOrderService {
                     event
             );
         } catch (Exception e) {
-            System.err.println("⚠️ RabbitMQ publish failed: " + e.getMessage());
+            System.err.println(
+                    "⚠️ RabbitMQ publish failed: " + e.getMessage()
+            );
         }
 
         return OrderResponse.fromEntity(order);
     }
 
     /**
-     * 3️⃣ Farm xem danh sách đơn
+     * 3️⃣ Farm xem đơn
      */
     @Override
     public List<OrderResponse> getOrdersByFarm(Long farmId) {
@@ -123,64 +131,80 @@ public class OrderService implements IOrderService {
     }
 
     /**
-     * 4️⃣ Farm xác nhận đơn
+     * 4️⃣ Farm xác nhận
      */
     @Override
     @Transactional
     public OrderResponse confirmOrder(Long orderId) {
 
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
+                .orElseThrow(() ->
+                        new RuntimeException("Order not found")
+                );
 
         if (!"CREATED".equals(order.getStatus())) {
-            throw new RuntimeException("Only CREATED orders can be confirmed");
+            throw new RuntimeException(
+                    "Only CREATED orders can be confirmed"
+            );
         }
 
         order.setStatus("CONFIRMED");
-        return OrderResponse.fromEntity(orderRepository.save(order));
+        return OrderResponse.fromEntity(
+                orderRepository.save(order)
+        );
     }
 
     /**
-     * 5️⃣ Farm từ chối đơn
+     * 5️⃣ Farm từ chối
      */
     @Override
     @Transactional
     public OrderResponse rejectOrder(Long orderId) {
 
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
+                .orElseThrow(() ->
+                        new RuntimeException("Order not found")
+                );
 
         if (!"CREATED".equals(order.getStatus())) {
-            throw new RuntimeException("Only CREATED orders can be rejected");
+            throw new RuntimeException(
+                    "Only CREATED orders can be rejected"
+            );
         }
 
         order.setStatus("REJECTED");
-        return OrderResponse.fromEntity(orderRepository.save(order));
+        return OrderResponse.fromEntity(
+                orderRepository.save(order)
+        );
     }
 
     /**
-     * 6️⃣ Retailer – xem đơn hàng của tôi
+     * 6️⃣ Retailer xem đơn của tôi
      */
     @Override
     @Transactional(readOnly = true)
     public List<OrderResponse> getOrdersByBuyerEmail(String buyerEmail) {
 
-        return orderRepository.findOrdersByBuyerEmail(buyerEmail)
+        return orderRepository
+                .findOrdersByBuyerEmail(buyerEmail)
                 .stream()
                 .map(OrderResponse::fromEntity)
                 .toList();
     }
+
     @Override
     @Transactional(readOnly = true)
     public OrderResponse getOrderDetailByIdAndBuyerEmail(
             Long orderId,
             String buyerEmail
-        ) {
-            Order order = orderRepository
-                    .findByIdAndBuyerEmail(orderId, buyerEmail)
-                    .orElseThrow(() ->
-                        new RuntimeException("Order not found or access denied")
-                    );
+    ) {
+        Order order = orderRepository
+                .findByIdAndBuyerEmail(orderId, buyerEmail)
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Order not found or access denied"
+                        )
+                );
 
         return OrderResponse.fromEntity(order);
     }

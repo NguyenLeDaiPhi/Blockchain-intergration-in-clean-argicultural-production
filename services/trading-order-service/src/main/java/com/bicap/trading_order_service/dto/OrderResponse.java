@@ -44,17 +44,17 @@ public class OrderResponse {
 
     /* ===== FACTORY METHOD ===== */
 
-    public static OrderResponse fromEntity(Order order) {
+   public static OrderResponse fromEntity(Order order) {
 
     List<OrderItemResponse> items = order.getItems()
-            .stream()
-            .map(item -> new OrderItemResponse(
-                    item.getProductId(),
-                    item.getProduct().getName(),   // ✅ GIỜ CÓ RỒI
-                    item.getQuantity(),
-                    item.getUnitPrice()
-            ))
-            .toList();
+        .stream()
+        .map(item -> new OrderItemResponse(
+                item.getProduct().getId(),      // ✅ FIX
+                item.getProduct().getName(),
+                item.getQuantity(),
+                item.getUnitPrice()
+        ))
+        .toList();
 
     return new OrderResponse(
             order.getId(),

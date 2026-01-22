@@ -40,7 +40,7 @@ public class SecurityConfig {
 
                 // 🛒 Retailer tạo đơn
                 .requestMatchers(HttpMethod.POST, "/api/orders")
-                    .hasRole("RETAILER")
+                    .hasAuthority("ROLE_RETAILER")
 
                 // 🌾 Farm manager
                 .requestMatchers("/api/orders/by-farm/**")

@@ -52,13 +52,22 @@ public class OrderController {
     // =======================
     // CREATE ORDER
     // =======================
-    @PreAuthorize("hasAuthority('ROLE_RETAILER')")
     @PostMapping
     public ResponseEntity<OrderResponse> createOrder(
-            @RequestBody CreateOrderRequest request
+            @RequestBody CreateOrderRequest request,
+            Authentication authentication
     ) {
-        return ResponseEntity.ok(orderService.createOrder(request));
-    }
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).build();
+        }
+
+        String buyerEmail = authentication.getName(); // ← LẤY TỪ JWT
+
+        return ResponseEntity.ok(
+                orderService.createOrder(request, buyerEmail)
+        );
+}
+
 
     // =======================
     // FARM MANAGER
