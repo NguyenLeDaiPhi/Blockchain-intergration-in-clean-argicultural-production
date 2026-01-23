@@ -1,0 +1,37 @@
+{
+  "extends": "expo/tsconfig.base",
+
+  "compilerOptions": {
+    "target": "ESNext",
+    "lib": ["ESNext", "DOM"],
+    "jsx": "react-jsx",
+
+    "strict": true,
+    "noEmit": true,
+
+    "moduleResolution": "bundler",
+    "allowJs": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"]
+    },
+
+    "types": ["jest"]
+  },
+
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts",
+    "__mocks__/**/*.ts",
+    "services/__tests__/**/*.ts"
+  ],
+
+  "exclude": [
+    "node_modules"
+  ]
+}
