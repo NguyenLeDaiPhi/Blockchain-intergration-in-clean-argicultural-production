@@ -12,30 +12,44 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface MarketplaceProductRepository extends JpaRepository<MarketplaceProduct, Long>, JpaSpecificationExecutor<MarketplaceProduct> {
+public interface MarketplaceProductRepository
+        extends JpaRepository<MarketplaceProduct, Long>,
+                JpaSpecificationExecutor<MarketplaceProduct> {
 
+    // ===============================
+    // FARM MANAGER
+    // ===============================
     @Query("SELECT p FROM MarketplaceProduct p WHERE p.farmManager.farmId = :farmId")
     List<MarketplaceProduct> findByFarmId(@Param("farmId") Long farmId);
 
-    // Tìm sản phẩm theo status
+    // ===============================
+    // COMMON
+    // ===============================
     List<MarketplaceProduct> findByStatus(String status);
 
-    // Tìm sản phẩm theo tên (LIKE)
-    @Query("SELECT p FROM MarketplaceProduct p WHERE LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%'))")
-    List<MarketplaceProduct> findByNameContainingIgnoreCase(@Param("keyword") String keyword);
+    // Giữ method này (merge từ HEAD + main)
+    @Query("SELECT p FROM MarketplaceProduct p " +
+           "WHERE LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%'))")
+    List<MarketplaceProduct> findByNameContainingIgnoreCase(
+            @Param("keyword") String keyword);
 
-    // Đếm số sản phẩm theo status
     long countByStatus(String status);
 
-    // Admin: Tìm kiếm với bộ lọc (keyword, status, farmId) với phân trang
-    // Sử dụng LEFT JOIN để lấy cả sản phẩm không có farmManager
-    @Query("SELECT p FROM MarketplaceProduct p LEFT JOIN p.farmManager fm " +
-           "WHERE (:keyword IS NULL OR :keyword = '' OR LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
-           "AND (:status IS NULL OR :status = '' OR p.status = :status) " +
-           "AND (:farmId IS NULL OR fm.farmId = :farmId)")
+    // ===============================
+    // ADMIN – FILTER + PAGING
+    // ===============================
+    @Query("""
+        SELECT p FROM MarketplaceProduct p
+        LEFT JOIN p.farmManager fm
+        WHERE (:keyword IS NULL OR :keyword = '' 
+               OR LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')))
+          AND (:status IS NULL OR :status = '' OR p.status = :status)
+          AND (:farmId IS NULL OR fm.farmId = :farmId)
+    """)
     Page<MarketplaceProduct> findWithFilters(
             @Param("keyword") String keyword,
             @Param("status") String status,
             @Param("farmId") Long farmId,
-            Pageable pageable);
+            Pageable pageable
+    );
 }

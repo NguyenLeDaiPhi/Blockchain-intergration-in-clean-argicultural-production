@@ -23,38 +23,58 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-            // JWT → STATELESS
+            // ===============================
+            // STATELESS JWT
+            // ===============================
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
 
-            // REST API không dùng CSRF
+            // ===============================
+            // CSRF OFF (REST API)
+            // ===============================
             .csrf(csrf -> csrf.disable())
 
-            // PHÂN QUYỀN
+            // ===============================
+            // AUTHORIZATION
+            // ===============================
             .authorizeHttpRequests(auth -> auth
 
-                // Swagger UI - public
-                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
+                // ===== PRE-FLIGHT =====
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                // Public API - Categories (cho Farmer chọn khi đăng sản phẩm)
-                .requestMatchers(HttpMethod.GET, "/api/v1/categories/**").permitAll()
+                // ===== SWAGGER =====
+                .requestMatchers(
+                    "/swagger-ui/**",
+                    "/v3/api-docs/**",
+                    "/swagger-ui.html"
+                ).permitAll()
 
-                // Internal API - Allow admin-service to call (service-to-service communication)
-                .requestMatchers("/api/admin/**").permitAll()
+                // ===== PUBLIC APIs =====
+                .requestMatchers(HttpMethod.GET, "/api/v1/categories/**")
+                    .permitAll()
 
-                // 👑 Admin APIs - Category & Product Management
-                .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+                // ===== INTERNAL SERVICE CALL =====
+                .requestMatchers("/api/admin/**")
+                    .permitAll()
 
-                // test jwt
+                // ===== ADMIN =====
+                .requestMatchers("/api/v1/admin/**")
+                    .hasRole("ADMIN")
+
+                // ===== TEST JWT =====
                 .requestMatchers("/api/orders/me")
                     .authenticated()
 
-                // 🛒 Retailer tạo đơn
+                // ===== PAYMENT =====
+                .requestMatchers("/api/payments/**")
+                    .hasRole("RETAILER")
+
+                // ===== RETAILER =====
                 .requestMatchers(HttpMethod.POST, "/api/orders")
                     .hasRole("RETAILER")
 
-                // 🌾 Farm manager
+                // ===== FARM MANAGER =====
                 .requestMatchers("/api/orders/by-farm/**")
                     .hasRole("FARMMANAGER")
                 .requestMatchers("/api/orders/*/confirm")
@@ -62,16 +82,18 @@ public class SecurityConfig {
                 .requestMatchers("/api/orders/*/reject")
                     .hasRole("FARMMANAGER")
 
-                // 🚚 Shipping manager
+                // ===== SHIPPING MANAGER =====
                 .requestMatchers("/api/orders/*/complete")
                     .hasRole("SHIPPINGMANAGER")
 
-                // còn lại chỉ cần đăng nhập
+                // ===== DEFAULT =====
                 .anyRequest()
                     .authenticated()
             )
 
+            // ===============================
             // JWT FILTER
+            // ===============================
             .addFilterBefore(
                 jwtAuthenticationFilter,
                 UsernamePasswordAuthenticationFilter.class
