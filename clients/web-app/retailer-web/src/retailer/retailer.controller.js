@@ -4,14 +4,21 @@ const orderService = require("./order.service");
 const showMarketplace = async (req, res) => {
   const keyword = req.query.name || "";
   const token = req.cookies.auth_token;
+  
+  console.log("📦 Marketplace page requested, keyword:", keyword);
+  console.log("📦 Token present:", !!token);
+  
   const products = await marketplaceService.getMarketplaceProducts(
     keyword,
     token
   );
 
+  console.log("📦 Products received:", products?.length || 0, "items");
+  console.log("📦 Products:", products);
+
   res.render("marketplace", {
     user: req.user,
-    products,
+    products: products || [],
     pageTitle: "Marketplace",
     query: keyword, // ⭐ BẮT BUỘC
   });

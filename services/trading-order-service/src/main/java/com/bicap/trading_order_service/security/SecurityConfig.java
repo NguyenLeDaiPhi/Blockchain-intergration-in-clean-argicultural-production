@@ -53,6 +53,12 @@ public class SecurityConfig {
                 // ===== PUBLIC APIs =====
                 .requestMatchers(HttpMethod.GET, "/api/v1/categories/**")
                     .permitAll()
+                
+                // ===== MARKETPLACE PRODUCTS (Retailer xem sản phẩm) =====
+                .requestMatchers(HttpMethod.GET, "/api/marketplace-products")
+                    .permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/marketplace-products/**")
+                    .permitAll()
 
                 // ===== INTERNAL SERVICE CALL =====
                 .requestMatchers("/api/admin/**")

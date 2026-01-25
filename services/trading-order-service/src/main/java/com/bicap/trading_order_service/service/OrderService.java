@@ -8,6 +8,7 @@ import com.bicap.trading_order_service.entity.MarketplaceProduct;
 import com.bicap.trading_order_service.entity.Order;
 import com.bicap.trading_order_service.entity.OrderItem;
 import com.bicap.trading_order_service.event.OrderCompletedEvent;
+import com.bicap.trading_order_service.event.OrderConfirmedEvent;
 import com.bicap.trading_order_service.repository.MarketplaceProductRepository;
 import com.bicap.trading_order_service.repository.OrderRepository;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -150,9 +151,41 @@ public class OrderService implements IOrderService {
         }
 
         order.setStatus("CONFIRMED");
-        return OrderResponse.fromEntity(
-                orderRepository.save(order)
-        );
+        Order savedOrder = orderRepository.save(order);
+
+        // Gửi message qua RabbitMQ để thông báo cho Shipping Manager
+        try {
+            // Lấy thông tin farm từ order items
+            Long farmId = null;
+            String farmManagerEmail = null;
+            if (!savedOrder.getItems().isEmpty()) {
+                MarketplaceProduct firstProduct = savedOrder.getItems().get(0).getProduct();
+                if (firstProduct != null && firstProduct.getFarmManager() != null) {
+                    farmId = firstProduct.getFarmManager().getFarmId();
+                    farmManagerEmail = firstProduct.getFarmManager().getEmail();
+                }
+            }
+
+            OrderConfirmedEvent event = new OrderConfirmedEvent(
+                    savedOrder.getId(),
+                    savedOrder.getBuyerEmail(),
+                    farmManagerEmail,
+                    farmId,
+                    savedOrder.getTotalAmount(),
+                    savedOrder.getShippingAddress()
+            );
+
+            rabbitTemplate.convertAndSend(
+                    RabbitMQConfig.ORDER_EXCHANGE,
+                    RabbitMQConfig.ORDER_CONFIRMED_KEY,
+                    event
+            );
+            System.out.println("✅ [RabbitMQ] Sent order confirmed event - Order ID: " + savedOrder.getId());
+        } catch (Exception e) {
+            System.err.println("⚠️ RabbitMQ publish failed for confirmed order: " + e.getMessage());
+        }
+
+        return OrderResponse.fromEntity(savedOrder);
     }
 
     /**

@@ -81,7 +81,7 @@ public class Order {
         this.shippingAddress = shippingAddress;
     }
 
-    public String getShipingAddress(){
+    public String getShippingAddress(){
         return shippingAddress;
     }
 

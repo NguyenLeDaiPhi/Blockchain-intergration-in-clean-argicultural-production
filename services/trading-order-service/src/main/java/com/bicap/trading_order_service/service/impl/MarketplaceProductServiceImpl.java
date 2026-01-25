@@ -9,6 +9,7 @@ import com.bicap.trading_order_service.repository.FarmManagerRepository;
 import com.bicap.trading_order_service.service.IMarketplaceProductService;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -45,6 +46,7 @@ public class MarketplaceProductServiceImpl implements IMarketplaceProductService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ProductResponse> getApprovedProducts() {
         return repository.findAll().stream()
                 .filter(p -> "APPROVED".equals(p.getStatus()))
@@ -66,6 +68,7 @@ public class MarketplaceProductServiceImpl implements IMarketplaceProductService
                 .orElseThrow(() -> new RuntimeException("Product not found"));
     }
 
+    @Transactional(readOnly = true)
     private ProductResponse mapToProductResponse(MarketplaceProduct product) {
         ProductResponse response = new ProductResponse();
         response.setId(product.getId());
@@ -77,7 +80,13 @@ public class MarketplaceProductServiceImpl implements IMarketplaceProductService
         response.setImageUrl(product.getImageUrl());
         response.setStatus(product.getStatus());
         response.setCreatedAt(product.getCreatedAt());
-        response.setFarmId(product.getFarmId());
+        // Lấy farmId từ FarmManager trong transaction để tránh LazyInitializationException
+        FarmManager farmManager = product.getFarmManager();
+        if (farmManager != null) {
+            response.setFarmId(farmManager.getFarmId());
+        } else {
+            response.setFarmId(null);
+        }
         response.setBatchId(product.getBatchId());
         response.setDescription(product.getDescription());
         // Map isApproved boolean if needed by frontend logic, usually derived from status

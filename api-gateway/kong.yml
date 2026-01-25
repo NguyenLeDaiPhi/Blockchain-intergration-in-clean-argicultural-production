@@ -242,8 +242,12 @@ routes:
       - GET
       - POST
       - OPTIONS
-    strip_path: true
+    strip_path: false
     plugins:
+      - name: request-transformer
+        config:
+          replace:
+            uri: /api/marketplace-products
       - name: rate-limiting
         config:
           minute: 100
@@ -465,6 +469,33 @@ routes:
       - name: file-log
         config:
           path: /var/log/kong/shipping-vehicles-api.log
+
+  # Trading Orders API (for trading-order-service - create/update orders)
+  # Đặt TRƯỚC shipping-orders-api để match trước
+  - name: trading-orders-api
+    service: trading-order-service
+    paths:
+      - /api/orders
+    methods:
+      - GET
+      - POST
+      - PUT
+      - OPTIONS
+    strip_path: false
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "POST", "PUT", "OPTIONS"]
+          headers: ["Accept", "Content-Type", "Authorization"]
+          credentials: true
+      - name: file-log
+        config:
+          path: /var/log/kong/trading-orders-api.log
 
   - name: shipping-orders-api
     service: shipping-manager-service

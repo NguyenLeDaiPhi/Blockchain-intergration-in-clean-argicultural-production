@@ -72,24 +72,21 @@
         <% } %>
       </div>
 
-      <!-- ================= PAYMENT POPUP ================= -->
+      <!-- ================= CHECKOUT POPUP - THANH TOÁN TIỀN MẶT KHI NHẬN HÀNG ================= -->
 <div class="payment-overlay" id="paymentOverlay" onclick="closePayment()">
   <div class="payment-modal" onclick="event.stopPropagation()">
 
     <div class="payment-header">
-      <h3>Thanh toán</h3>
+      <h3>Đặt hàng</h3>
       <p>
         Tổng tiền:
         <strong><span id="paymentTotal">0</span> VND</strong>
       </p>
+      <p style="color: #28a745; font-size: 14px; margin-top: 8px;">
+        💰 Thanh toán tiền mặt khi nhận hàng
+      </p>
     </div>
 
-    <div class="payment-methods">
-      <label class="payment-method">
-        <input type="radio" name="paymentMethod" value="momo" checked>
-        <span>📱 MoMo</span>
-      </label>
-    </div>
     <!-- SHIPPING ADDRESS -->
     <div class="payment-address">
       <label for="shippingAddress">📍 Địa chỉ giao hàng</label>
@@ -102,36 +99,11 @@
     </div>
 
     <button
-  type="button"
-  class="btn-checkout btn-next"
-  onclick="handlePaymentNext()"
->
-  Tiếp theo
-</button>
-
-  </div>
-</div>
-
-<!-- ================= MOMO QR MODAL ================= -->
-<div class="payment-overlay hidden" id="qrOverlay">
-  <div class="payment-modal qr-modal" onclick="event.stopPropagation()">
-
-    <h3>Quét mã QR MoMo</h3>
-
-    <img
-      id="momoQr"
-      src=""
-      alt="MoMo QR"
-      style="width:240px;margin:20px auto;display:block"
-    />
-
-    <p style="text-align:center">
-      Tổng tiền:
-      <strong><span id="qrTotal">0</span> VND</strong>
-    </p>
-
-    <button type="button" class="btn-checkout" onclick="confirmMomoPayment()">
-      Tôi đã thanh toán
+      type="button"
+      class="btn-checkout btn-next"
+      onclick="handlePaymentNext()"
+    >
+      Đặt hàng
     </button>
 
   </div>

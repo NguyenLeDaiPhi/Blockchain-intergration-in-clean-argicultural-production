@@ -36,6 +36,12 @@ public class RabbitMQConfig {
     @Value("${bicap.rabbitmq.queue.notification:shipping.notification.queue}")
     private String notificationQueue;
 
+    @Value("${bicap.rabbitmq.queue.order.confirmed:bicap.order.confirmed.queue}")
+    private String orderConfirmedQueue;
+
+    @Value("${bicap.rabbitmq.exchange.order:bicap.order.exchange}")
+    private String orderExchangeName;
+
     // Routing keys
     @Value("${bicap.rabbitmq.routing-key.shipment.status:shipment.status.routing.key}")
     private String shipmentStatusRoutingKey;
@@ -48,6 +54,15 @@ public class RabbitMQConfig {
 
     @Value("${bicap.rabbitmq.routing-key.notification:notification.routing.key}")
     private String notificationRoutingKey;
+
+    @Value("${bicap.rabbitmq.routing-key.order.confirmed:bicap.order.confirmed.key}")
+    private String orderConfirmedRoutingKey;
+
+    // Order Exchange (from trading-order-service)
+    @Bean
+    public TopicExchange orderExchange() {
+        return new TopicExchange(orderExchangeName, true, false);
+    }
 
     // Exchange
     @Bean
@@ -74,6 +89,11 @@ public class RabbitMQConfig {
     @Bean
     public Queue notificationQueue() {
         return new Queue(notificationQueue, true);
+    }
+
+    @Bean
+    public Queue orderConfirmedQueue() {
+        return new Queue(orderConfirmedQueue, true);
     }
 
     // Bindings
@@ -103,6 +123,13 @@ public class RabbitMQConfig {
         return BindingBuilder.bind(notificationQueue())
                 .to(internalExchange())
                 .with(notificationRoutingKey);
+    }
+
+    @Bean
+    public Binding orderConfirmedBinding() {
+        return BindingBuilder.bind(orderConfirmedQueue())
+                .to(orderExchange())
+                .with(orderConfirmedRoutingKey);
     }
 
     // Message Converter

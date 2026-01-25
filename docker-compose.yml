@@ -289,11 +289,12 @@ services:
       - AUTH_SERVICE_URL=http://kong-gateway:8000/api/auth
       - AUTH_SERVICE_URL_UPDATE=http://kong-gateway:8000/api/update
       - NODE_ENV=development
+      - DOCKER_ENV=true
       - RABBITMQ_URL=amqp://root:root@bicap-message-queue:5672
       - FARM_API_URL=http://farm-production-service:8081/api/farm-features
       - MARKETPLACE_API_PATH=http://kong-gateway:8000/api/fetch-marketplace-products
       - FARMING_SEASONS_API_PATH=http://kong-gateway:8000/api/farming-seasons
-      - API_GATEWAY_BASE_URL=http://localhost:8000
+      - API_GATEWAY_BASE_URL=http://kong-gateway:8000
     ports:
       - "3000:3000"
     networks:

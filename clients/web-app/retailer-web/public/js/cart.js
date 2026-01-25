@@ -74,9 +74,10 @@ document.addEventListener("click", e => {
 });
 
 /************************************
- * PAYMENT POPUP
+ * CHECKOUT - THANH TOÁN TIỀN MẶT KHI NHẬN HÀNG
  ************************************/
 document.querySelector(".btn-checkout")?.addEventListener("click", () => {
+  // Hiển thị popup nhập địa chỉ
   document.getElementById("paymentTotal").innerText = updateGrandTotal();
   document.getElementById("paymentOverlay")?.classList.add("show");
 });
@@ -85,26 +86,10 @@ function closePayment() {
   document.getElementById("paymentOverlay")?.classList.remove("show");
 }
 
-/************************************
- * MOMO DEMO FLOW
- ************************************/
-let currentPaymentToken = null;
-
 /**
- * NEXT
+ * TẠO ĐƠN HÀNG - THANH TOÁN TIỀN MẶT KHI NHẬN HÀNG
  */
 async function handlePaymentNext() {
-  console.log("🔥 CLICK NEXT OK");
-
-  const method = document.querySelector(
-    "input[name='paymentMethod']:checked"
-  )?.value;
-
-  if (method !== "momo") {
-    alert("Vui lòng chọn MoMo");
-    return;
-  }
-
   const addressInput = document.getElementById("shippingAddress");
   const shippingAddress = addressInput?.value.trim();
 
@@ -114,21 +99,15 @@ async function handlePaymentNext() {
     return;
   }
 
-  window.shippingAddress = shippingAddress;
-  await startMomoPayment();
-}
+  if (!window.cartItems.length) {
+    alert("Giỏ hàng trống");
+    return;
+  }
 
-/**
- * CREATE PAYMENT (DEMO MODE)
- */
-async function startMomoPayment() {
   try {
-    if (!window.cartItems.length) {
-      alert("Giỏ hàng trống");
-      return;
-    }
-
-    const res = await fetch("http://localhost:8000/api/payments/momo", {
+    // Tạo order trực tiếp (không cần payment)
+    // Dùng relative path để đi qua retailer-web proxy
+    const res = await fetch("/api/orders", {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -137,67 +116,34 @@ async function startMomoPayment() {
           productId: i.id,
           quantity: i.quantity
         })),
-        shippingAddress: window.shippingAddress
+        shippingAddress: shippingAddress
       })
     });
 
     if (!res.ok) {
       const text = await res.text();
       console.error(text);
-      throw new Error("Create payment failed");
-    }
-
-    const data = await res.json();
-    currentPaymentToken = data.paymentToken;
-
-    // Ẩn popup thanh toán
-    document.getElementById("paymentOverlay").classList.remove("show");
-
-    // HIỆN POPUP DEMO (KHÔNG redirect)
-    const qrOverlay = document.getElementById("qrOverlay");
-
-    qrOverlay.classList.remove("hidden");
-    qrOverlay.classList.add("show");
-    
-    document.getElementById("qrTotal").innerText = data.amount;
-
-  } catch (err) {
-    console.error(err);
-    alert("Không tạo được thanh toán MoMo");
-  }
-}
-
-/**
- * CONFIRM PAYMENT (DEMO)
- */
-async function confirmMomoPayment() {
-  try {
-    if (!currentPaymentToken) {
-      alert("Thiếu payment token");
-      return;
-    }
-
-    const res = await fetch(
-      `http://localhost:8000/api/payments/momo/success/${currentPaymentToken}`,
-      {
-        method: "GET",
-        credentials: "include"
-      }
-    );
-
-    if (!res.ok) {
-      const text = await res.text();
-      console.error(text);
-      throw new Error("Confirm failed");
+      throw new Error("Tạo đơn hàng thất bại");
     }
 
     const order = await res.json();
 
-    // Redirect order detail
-    window.location.href = `/orders/${order.orderId}`;
+    // Xóa giỏ hàng
+    window.cartItems = [];
+    document.querySelectorAll(".cart-item").forEach(item => item.remove());
+    updateGrandTotal();
+
+    // Đóng popup
+    closePayment();
+
+    // Thông báo thành công
+    alert("Đặt hàng thành công! Bạn sẽ thanh toán tiền mặt khi nhận hàng.");
+
+    // Redirect đến trang chi tiết đơn hàng
+    window.location.href = `/orders/${order.id}`;
 
   } catch (err) {
     console.error(err);
-    alert("Thanh toán thất bại");
+    alert("Không thể tạo đơn hàng. Vui lòng thử lại.");
   }
 }

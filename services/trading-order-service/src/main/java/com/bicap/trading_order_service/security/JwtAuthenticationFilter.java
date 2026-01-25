@@ -99,7 +99,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         for (String role : roles) {
-            authorities.add(new SimpleGrantedAuthority(role));
+            // Spring Security expects ROLE_ prefix for hasRole() checks
+            // If role already has ROLE_ prefix, use it; otherwise add it
+            String authority = role.startsWith("ROLE_") ? role : "ROLE_" + role;
+            authorities.add(new SimpleGrantedAuthority(authority));
         }
 
         /* =====================================================

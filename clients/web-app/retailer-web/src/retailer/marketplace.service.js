@@ -8,15 +8,20 @@ const getMarketplaceProducts = async (keyword = "", token) => {
       url += `?name=${encodeURIComponent(keyword.trim())}`;
     }
 
+    console.log("🔍 Fetching marketplace products from:", url);
+    console.log("🔍 Token present:", !!token);
+
     const res = await api.get(url, {
-      headers: {
+      headers: token ? {
         Authorization: `Bearer ${token}`,
-      },
+      } : {},
     });
 
-    return res.data;
+    console.log("✅ Marketplace API response:", res.data?.length || 0, "products");
+    return res.data || [];
   } catch (err) {
-    console.error("Marketplace API error:", err.message);
+    console.error("❌ Marketplace API error:", err.message);
+    console.error("❌ Error details:", err.response?.data || err.response?.status || "No response");
     return [];
   }
 };

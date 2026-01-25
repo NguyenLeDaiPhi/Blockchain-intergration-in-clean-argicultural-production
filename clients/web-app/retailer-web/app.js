@@ -16,6 +16,7 @@ app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "front-end", "template"));
 
 /* ================= STATIC ================= */
+// Đặt static files TRƯỚC API routes để tránh conflict
 app.use("/css", express.static(path.join(__dirname, "front-end", "css")));
 app.use("/js", express.static(path.join(__dirname, "public", "js")));
 app.use("/img", express.static(path.join(__dirname, "public", "img")));
@@ -115,8 +116,14 @@ app.get("/", (req, res) => {
    ================================================= */
 app.use("/api", auth.requireAuth, async (req, res) => {
   try {
-    const kongUrl = `http://localhost:8000${req.originalUrl}`;
+    // Dùng kong-gateway trong Docker, localhost khi dev local
+    const kongBaseUrl = process.env.API_GATEWAY_BASE_URL || 
+                       (process.env.DOCKER_ENV === "true" ? "http://kong-gateway:8000" : "http://localhost:8000");
+    const kongUrl = `${kongBaseUrl}${req.originalUrl}`;
     const authToken = req.cookies.auth_token;
+
+    console.log(`🔄 [API Proxy] ${req.method} ${req.originalUrl} → ${kongUrl}`);
+    console.log(`🔄 [API Proxy] Token present: ${!!authToken}`);
 
     const response = await fetch(kongUrl, {
       method: req.method,
@@ -130,6 +137,8 @@ app.use("/api", auth.requireAuth, async (req, res) => {
           : JSON.stringify(req.body),
     });
 
+    console.log(`🔄 [API Proxy] Response status: ${response.status}`);
+
     const contentType = response.headers.get("content-type");
 
     if (contentType && contentType.includes("application/json")) {
@@ -141,8 +150,9 @@ app.use("/api", auth.requireAuth, async (req, res) => {
     }
 
   } catch (err) {
-    console.error("API proxy error:", err);
-    res.status(502).json({ message: "Gateway error" });
+    console.error("❌ [API Proxy] Error:", err.message);
+    console.error("❌ [API Proxy] Stack:", err.stack);
+    res.status(502).json({ message: "Gateway error: " + err.message });
   }
 });
 
