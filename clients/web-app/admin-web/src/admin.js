@@ -15,7 +15,7 @@ const ADMIN_SERVICE_URL = process.env.ADMIN_SERVICE_URL || 'http://localhost:808
 const FARM_SERVICE_URL = process.env.FARM_SERVICE_URL || 'http://localhost:8081';
 
 // Đồng bộ secret/role với authentication.js để đọc JWT trong cookie
-const JWT_SECRET_STRING = 'YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9uCg==';
+const JWT_SECRET_STRING = 'YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u';
 const JWT_SECRET = Buffer.from(JWT_SECRET_STRING, 'base64');
 const APPLICATION_ROLE = 'ROLE_ADMIN';
 

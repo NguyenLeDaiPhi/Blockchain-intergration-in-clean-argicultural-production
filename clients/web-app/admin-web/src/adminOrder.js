@@ -12,7 +12,7 @@ const ADMIN_SERVICE_URL = process.env.ADMIN_SERVICE_URL || 'http://localhost:808
 const TRADING_ORDER_SERVICE_URL = process.env.TRADING_ORDER_SERVICE_URL || 'http://localhost:8083';
 
 // Đồng bộ secret/role với authentication.js để đọc JWT trong cookie
-const JWT_SECRET_STRING = 'YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9uCg==';
+const JWT_SECRET_STRING = 'YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u';
 const JWT_SECRET = Buffer.from(JWT_SECRET_STRING, 'base64');
 const APPLICATION_ROLE = 'ROLE_ADMIN';
 
@@ -49,48 +49,6 @@ const requireAdmin = (req, res, next) => {
 };
 
 // =========================================================
-<<<<<<< HEAD
-// 1. ROUTE: XÉT DUYỆT SẢN PHẨM (Pending Products - Quản lý Danh mục)
-// =========================================================
-
-// Trang xét duyệt sản phẩm PENDING (route /admin/categories)
-router.get('/admin/categories', requireAuth, requireAdmin, async (req, res) => {
-    try {
-        const { keyword = '', page = 0, size = 10 } = req.query;
-        const headers = { Authorization: `Bearer ${req.accessToken}` };
-        
-        console.log('Calling Admin Service for PENDING products (categories route)');
-        
-        const params = {
-            page,
-            size,
-            status: 'PENDING' // Chỉ lấy sản phẩm PENDING để duyệt
-        };
-        if (keyword) params.keyword = keyword;
-
-        const response = await axios.get(`${ADMIN_SERVICE_URL}/api/v1/admin/products`, {
-            params,
-            headers,
-            timeout: 5000
-        });
-
-        const payload = response.data || {};
-        const productsContent = payload.content || [];
-        console.log('Pending products received:', productsContent.length, 'items');
-
-        res.render('admin-categories', {
-            products: payload,
-            currentPage: parseInt(page),
-            keyword,
-            user: req.user
-        });
-    } catch (e) {
-        console.error('Lỗi gọi Pending Products API:', e.message);
-        res.render('admin-categories', {
-            products: { content: [], totalPages: 0 },
-            keyword: '',
-            currentPage: 0,
-=======
 // 1. ROUTE: QUẢN LÝ DANH MỤC (Categories)
 // =========================================================
 
@@ -118,7 +76,6 @@ router.get('/admin/categories', requireAuth, requireAdmin, async (req, res) => {
         console.error('Lỗi gọi Categories API:', e.message);
         res.render('admin-categories', {
             categories: [],
->>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
             user: req.user
         });
     }
@@ -221,17 +178,10 @@ router.delete('/api/v1/admin/categories/:id/permanent', requireAuth, requireAdmi
 // 2. ROUTE: GIÁM SÁT SẢN PHẨM (Products)
 // =========================================================
 
-<<<<<<< HEAD
-// Trang giám sát sản phẩm (mặc định APPROVED)
-router.get('/admin/products', requireAuth, requireAdmin, async (req, res) => {
-    try {
-        const { keyword = '', status = 'APPROVED', farmId = '', page = 0, size = 10 } = req.query;
-=======
-// Trang giám sát sản phẩm
+// Trang giám sát sản phẩm (có thể lọc theo status)
 router.get('/admin/products', requireAuth, requireAdmin, async (req, res) => {
     try {
         const { keyword = '', status = '', farmId = '', page = 0, size = 10 } = req.query;
->>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
         const headers = { Authorization: `Bearer ${req.accessToken}` };
 
         console.log('Calling Admin Service for products at:', ADMIN_SERVICE_URL);
@@ -252,24 +202,12 @@ router.get('/admin/products', requireAuth, requireAdmin, async (req, res) => {
             timeout: 5000
         });
 
-<<<<<<< HEAD
         // Check if response is HTML (Login Page) instead of JSON
         if (response.headers['content-type'] && response.headers['content-type'].includes('text/html')) {
             console.error('Error: Admin Service returned HTML (Login Page). Check Security Configuration.');
             throw new Error('Admin Service returned HTML instead of JSON');
         }
 
-        const payload = response.data || {};
-        const productsContent = payload.content || [];
-        console.log('Products received:', productsContent.length, 'items');
-
-        res.render('admin-products', {
-            products: payload, // Pass the full Page object (contains .content and .totalPages)
-            currentPage: parseInt(page),
-            keyword,
-            status,
-            farmId,
-=======
         const payload = response.data || {};
         const products = payload.content || [];
         const pagination = {
@@ -287,7 +225,6 @@ router.get('/admin/products', requireAuth, requireAdmin, async (req, res) => {
             status,
             farmId,
             pagination,
->>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
             user: req.user
         });
     } catch (e) {
@@ -297,11 +234,7 @@ router.get('/admin/products', requireAuth, requireAdmin, async (req, res) => {
             keyword: '',
             status: '',
             farmId: '',
-<<<<<<< HEAD
-            currentPage: 0,
-=======
             pagination: { page: 0, size: 10, totalPages: 1, totalElements: 0 },
->>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
             user: req.user
         });
     }
@@ -393,7 +326,6 @@ router.get('/api/v1/admin/products/statistics', requireAuth, requireAdmin, async
     }
 });
 
-<<<<<<< HEAD
 // API Proxy: Duyệt sản phẩm (approve)
 router.put('/api/v1/admin/products/:id/approve', requireAuth, requireAdmin, async (req, res) => {
     try {
@@ -467,28 +399,32 @@ router.get('/admin/approvals', requireAuth, requireAdmin, async (req, res) => {
         });
 
         const payload = response.data || {};
-        const productsContent = payload.content || [];
-        console.log('Pending products received:', productsContent.length, 'items');
+        const products = payload.content || [];
+        const pagination = {
+            page: payload.number ?? Number(page) ?? 0,
+            size: payload.size ?? Number(size) ?? 10,
+            totalPages: payload.totalPages ?? 1,
+            totalElements: payload.totalElements ?? products.length
+        };
+        console.log('Pending products received:', products.length, 'items');
 
-        res.render('admin-categories', { // Sử dụng template admin-categories cho trang duyệt
-            products: payload,
-            currentPage: parseInt(page),
+        res.render('admin-approvals', {
+            products: products,
+            pagination,
             keyword,
             user: req.user
         });
     } catch (e) {
         console.error('Lỗi gọi Pending Products API:', e.message);
-        res.render('admin-categories', {
-            products: { content: [], totalPages: 0 },
+        res.render('admin-approvals', {
+            products: [],
+            pagination: { page: 0, size: 10, totalPages: 1, totalElements: 0 },
             keyword: '',
-            currentPage: 0,
             user: req.user
         });
     }
 });
 
-=======
->>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
 // =========================================================
 // 3. ROUTE: QUẢN LÝ ĐƠN HÀNG (Orders)
 // =========================================================
@@ -653,8 +589,4 @@ router.get('/api/v1/admin/orders/count', requireAuth, requireAdmin, async (req, 
     }
 });
 
-<<<<<<< HEAD
 module.exports = router;
-=======
-module.exports = router;
->>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d

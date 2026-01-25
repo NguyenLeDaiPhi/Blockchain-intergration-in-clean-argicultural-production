@@ -14,17 +14,11 @@ document.addEventListener("DOMContentLoaded", () => {
     controller = new AbortController();
 
     try {
-<<<<<<< HEAD
       // 🔹 Có keyword → search
       // 🔹 Không keyword → load full marketplace
       const url = keyword
-        ? `/api/marketplace-search?name=${encodeURIComponent(keyword)}`
-        : `/api/marketplace-search`;
-=======
-      const url = keyword
         ? `/api/fetch-marketplace-products?name=${encodeURIComponent(keyword)}`
         : `/api/fetch-marketplace-products`;
->>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
 
       const res = await fetch(url, {
         signal: controller.signal,
@@ -45,11 +39,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-<<<<<<< HEAD
-      // ✅ RENDER CARD MỚI (GIỐNG marketplace.ejs)
-=======
       // ✅ RENDER CARD MỚI (CÓ ĐỦ DATA + CLASS)
->>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
       grid.innerHTML = products
         .map(
           (p) => `
@@ -72,16 +62,12 @@ document.addEventListener("DOMContentLoaded", () => {
               <button class="btn-outline" onclick="openQr(${p.id})">
                 Xem chi tiết
               </button>
-<<<<<<< HEAD
-              <button class="btn-primary">
-=======
               <button
                 class="btn-primary add-to-cart-btn"
                 data-id="${p.id}"
                 data-name="${p.name}"
                 data-price="${p.price}"
               >
->>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
                 Thêm vào giỏ
               </button>
             </div>
@@ -97,14 +83,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
-<<<<<<< HEAD
-function addToCart(productId) {
-  fetch("/cart/add", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ productId }),
-  }).then(res => {
-=======
 
 /* ================= ADD TO CART ================= */
 
@@ -124,22 +102,10 @@ document.addEventListener("click", (e) => {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ product }),
   }).then((res) => {
->>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
     if (res.ok) {
       alert("Đã thêm vào giỏ hàng");
     } else {
       alert("Sản phẩm đã có trong giỏ");
     }
   });
-<<<<<<< HEAD
-}
-document.addEventListener("click", (e) => {
-  if (!e.target.classList.contains("add-to-cart-btn")) return;
-
-  const productId = Number(e.target.dataset.id);
-  addToCart(productId);
 });
-
-=======
-});
->>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d

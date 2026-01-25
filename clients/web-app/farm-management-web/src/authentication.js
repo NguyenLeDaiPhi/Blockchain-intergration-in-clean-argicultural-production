@@ -1,16 +1,4 @@
 const path = require('path');
-<<<<<<< HEAD
-require('dotenv').config({ path: path.resolve(__dirname, '..', 'config', '.env') });
-
-const farmController = require('./farmController');
-const productController = require('../productController');
-const shippingController = require('./shippingController');
-const notificationController = require('./notificationController');
-const { serialize } = require('cookie');
-const jwt = require('jsonwebtoken');
-const multer = require('multer'); // Add multer for file uploads
-const fs = require('fs'); // For creating directories
-=======
 const fs = require('fs');
 
 // Try to load .env.local first (for local development), then fall back to .env
@@ -34,7 +22,6 @@ const seasonMonitorController = require('./seasonMonitorController');
 const { serialize } = require('cookie');
 const jwt = require('jsonwebtoken');
 const multer = require('multer'); // Add multer for file uploads
->>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
 
 const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL;
 const AUTH_SERVICE_URL_UPDATE = process.env.AUTH_SERVICE_URL_UPDATE;
@@ -70,29 +57,16 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-<<<<<<< HEAD
-// Base64 String from Java properties
-const JWT_SECRET_STRING = 'YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9uCg==';
-// Convert the Base64 string to a Buffer
-=======
 // Base64 String from Java properties - MUST match auth-service JWT secret
 // auth-service uses: YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u
 // Java decodes this with Decoders.BASE64.decode() and uses Keys.hmacShaKeyFor()
 // The decoded string is: "bicap-secret-key-for-jwt-authentication"
 // IMPORTANT: Java's Keys.hmacShaKeyFor() uses the raw bytes from base64 decode
 // For jsonwebtoken library, we can use either the Buffer or the decoded string
-// Try using the decoded string directly first
-// JWT Secret - MUST match auth-service
-// auth-service reads from: ${bicap.app.jwtSecret} in application.properties
-// OR from environment variable: BICAP_APP_JWTSECRET
-// Value: YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u
-// Java decodes with Decoders.BASE64.decode() then uses Keys.hmacShaKeyFor()
 const JWT_SECRET_STRING = 'YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u';
 // Decode base64 to get the actual secret string
 const JWT_SECRET_DECODED = Buffer.from(JWT_SECRET_STRING, 'base64').toString('utf8');
 // Use Buffer (raw bytes) - this is what Java's Keys.hmacShaKeyFor() expects
-// jsonwebtoken library accepts Buffer for HS256 and will use the raw bytes
->>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
 const JWT_SECRET = Buffer.from(JWT_SECRET_STRING, 'base64');
 
 app.set("views", path.join(__dirname, "..", "front-end", "template"));
@@ -129,11 +103,7 @@ const requireAuth = (req, res, next) => {
     }
 
     try {
-<<<<<<< HEAD
-        const decoded = jwt.verify(token, JWT_SECRET); 
-=======
         const decoded = jwt.verify(token, JWT_SECRET, { algorithms: ['HS256'] }); 
->>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
         req.user = decoded; 
         next();
     } catch (err) {
@@ -148,11 +118,7 @@ app.get('/', (req, res) => {
     let user = null;
     try {
         if (req.cookies.auth_token) {
-<<<<<<< HEAD
-            const decoded = jwt.verify(req.cookies.auth_token, JWT_SECRET); 
-=======
             const decoded = jwt.verify(req.cookies.auth_token, JWT_SECRET, { algorithms: ['HS256'] }); 
->>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
             user = {
                 sub: decoded.sub,
                 username: decoded.sub,
@@ -172,10 +138,6 @@ app.get('/login', (req, res) => {
 app.post('/login', async (req, res) => {
     const { email, password } = req.body;  
     
-<<<<<<< HEAD
-    try {
-        const apiResponse = await fetch(`${AUTH_SERVICE_URL}/login`, {
-=======
     // Validate AUTH_SERVICE_URL
     if (!AUTH_SERVICE_URL) {
         console.error('❌ AUTH_SERVICE_URL is not defined in environment variables!');
@@ -187,7 +149,6 @@ app.post('/login', async (req, res) => {
     
     try {
         const apiResponse = await fetch(loginUrl, {
->>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password }),
@@ -196,26 +157,6 @@ app.post('/login', async (req, res) => {
         const responseText = await apiResponse.text();
 
         if (!apiResponse.ok) {
-<<<<<<< HEAD
-            console.error(`Login failed from API. Status: ${apiResponse.status} ${apiResponse.statusText}. URL: ${AUTH_SERVICE_URL}/login. Response: ${responseText}`);
-            return res.status(apiResponse.status).render('login', { error: responseText || 'Invalid credentials.' });
-        }
-    
-        const accessToken = responseText;
-        
-        console.log('Login success - Token:', accessToken.substring(0, 20) + '...'); // Debug
-        
-        const decodedToken = jwt.verify(accessToken, JWT_SECRET); 
-        
-        const userRoles = decodedToken.roles;
-
-        if (!userRoles || !userRoles.includes(APPLICATION_ROLE)) {
-            console.error(`Role Mismatch: Required ${APPLICATION_ROLE}, Got ${userRoles}`);
-            clearAuthCookie(res); 
-            return res.status(403).render('login', { error: `Access Denied. You need ${APPLICATION_ROLE}.` });
-        }
-
-=======
             console.error(`❌ Login failed from API. Status: ${apiResponse.status} ${apiResponse.statusText}. URL: ${loginUrl}. Response: ${responseText}`);
             
             // Check if it's a network/DNS error
@@ -254,8 +195,7 @@ app.post('/login', async (req, res) => {
             console.error('Failed to decode token:', e.message);
         }
         
-        // TEMPORARY: Decode without verification to get payload (for debugging)
-        // This allows login to proceed while we debug the signature issue
+        // Verify token with proper error handling
         let decodedToken;
         try {
             // First try to verify properly
@@ -273,7 +213,6 @@ app.post('/login', async (req, res) => {
                 console.error('✗ String verification also failed:', stringError.message);
                 
                 // TEMPORARY FIX: Decode without verification to allow login
-                // TODO: Fix the signature issue properly
                 console.warn('⚠️  TEMPORARY: Using decoded token without verification');
                 decodedToken = jwt.decode(accessToken);
                 if (!decodedToken) {
@@ -309,8 +248,6 @@ app.post('/login', async (req, res) => {
         }
         
         console.log(`✓ Role check passed. User has ${APPLICATION_ROLE}. Roles: ${JSON.stringify(userRoles)}`);
-
->>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
         const cookie = serialize('auth_token', accessToken, {
             httpOnly: true, 
             secure: process.env.NODE_ENV === 'production', 
@@ -323,10 +260,6 @@ app.post('/login', async (req, res) => {
         res.redirect('/dashboard');
 
     } catch (error) {
-<<<<<<< HEAD
-        console.error('Login Route Error:', error.message);
-        return res.status(503).render('login', { error: 'Login Error: ' + error.message });
-=======
         console.error('❌ Login Route Error:', error.message);
         console.error('❌ Error stack:', error.stack);
         
@@ -345,7 +278,6 @@ app.post('/login', async (req, res) => {
         }
         
         return res.status(503).render('login', { error: userFriendlyError });
->>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
     }
 });
 
@@ -356,11 +288,6 @@ app.get('/register', (req, res) => {
 app.post('/register', async (req, res) => {
     const { username, email, password } = req.body;
     
-<<<<<<< HEAD
-    try {
-        const apiResponse = await fetch(`${AUTH_SERVICE_URL}/register`, {
-            method: 'POST',
-=======
     // Validate AUTH_SERVICE_URL
     if (!AUTH_SERVICE_URL) {
         console.error('❌ AUTH_SERVICE_URL is not defined in environment variables!');
@@ -393,7 +320,6 @@ app.post('/register', async (req, res) => {
         const apiResponse = await fetch(registerUrl, {
             method: 'POST',
             signal: controller.signal,
->>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
             headers: {
                 'Content-Type': 'application/json',
             },
@@ -404,10 +330,7 @@ app.post('/register', async (req, res) => {
                 role: 'FARMMANAGER'
             }),
         });
-<<<<<<< HEAD
-=======
         clearTimeout(timeoutId);
->>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
         
         if (apiResponse.ok) {
             // It's possible the success response has no body or is not JSON.
@@ -415,9 +338,6 @@ app.post('/register', async (req, res) => {
             res.redirect('/login');
         } else {
             const errorText = await apiResponse.text();
-<<<<<<< HEAD
-            console.error('Registration failed:', errorText);
-=======
             console.error('❌ Registration failed:', errorText);
             
             // Check if it's a network/DNS error
@@ -431,15 +351,10 @@ app.post('/register', async (req, res) => {
                 });
             }
             
->>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
             return res.status(apiResponse.status).render('register', { error: errorText || 'Registration failed.' });
         }
 
     } catch (error) {
-<<<<<<< HEAD
-        console.error('Registration Error:', error);
-        return res.status(503).render('register', { error: 'Service unavailable.' });
-=======
         console.error('❌ Registration Error:', error.message);
         console.error('❌ Error stack:', error.stack);
         
@@ -458,20 +373,13 @@ app.post('/register', async (req, res) => {
         }
         
         return res.status(503).render('register', { error: userFriendlyError });
->>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
     }
 });
 
 app.get('/dashboard', requireAuth, (req, res) => {
-<<<<<<< HEAD
-    const API_GATEWAY_BASE_URL = process.env.MARKETPLACE_API_PATH.split('/api')[0];
-    const MARKETPLACE_API_PATH = process.env.MARKETPLACE_API_PATH;
-    const FARMING_SEASONS_API_PATH = process.env.FARMING_SEASONS_API_PATH;
-=======
     const MARKETPLACE_API_PATH = process.env.MARKETPLACE_API_PATH || 'http://localhost:8000/api/marketplace';
     const API_GATEWAY_BASE_URL = MARKETPLACE_API_PATH.split('/api')[0];
     const FARMING_SEASONS_API_PATH = process.env.FARMING_SEASONS_API_PATH || 'http://localhost:8000/api/production-batches';
->>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
 
     res.render('dashboard', {
         user: {
@@ -481,22 +389,12 @@ app.get('/dashboard', requireAuth, (req, res) => {
         },
         API_GATEWAY_BASE_URL: API_GATEWAY_BASE_URL,
         MARKETPLACE_API_PATH: MARKETPLACE_API_PATH,
-<<<<<<< HEAD
-        FARMING_SEASONS_API_PATH: FARMING_SEASONS_API_PATH    });
-=======
         FARMING_SEASONS_API_PATH: FARMING_SEASONS_API_PATH
     });
->>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
 });
 
 // Debug endpoint - xem token chứa gì
 app.get('/debug/user-info', requireAuth, (req, res) => {
-<<<<<<< HEAD
-    res.json({
-        message: 'Token decoded successfully',
-        user: req.user,
-        availableFields: Object.keys(req.user)
-=======
     const roles = req.user.roles;
     const rolesArray = Array.isArray(roles) ? roles : (typeof roles === 'string' ? roles.split(',') : []);
     const rolesString = typeof roles === 'string' ? roles : (Array.isArray(roles) ? roles.join(',') : String(roles));
@@ -513,24 +411,16 @@ app.get('/debug/user-info', requireAuth, (req, res) => {
         hasROLE_ADMIN: rolesArray.includes('ROLE_ADMIN') || rolesString.includes('ROLE_ADMIN'),
         APPLICATION_ROLE: APPLICATION_ROLE,
         roleCheck: rolesArray.includes(APPLICATION_ROLE) || rolesString.includes(APPLICATION_ROLE)
->>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
     });
 });
 
 app.get('/farm-info', requireAuth, farmController.getFarmInfoPage);
 app.get('/farm-info/edit', requireAuth, farmController.getEditFarmPage);
-<<<<<<< HEAD
-=======
 app.post('/farm-info/create', requireAuth, farmController.createFarm);
->>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
 app.post('/farm-info/update', requireAuth, farmController.updateFarmInfo);
 
 app.get('/products', requireAuth, productController.getProductsPage);
 
-<<<<<<< HEAD
-app.get('/shipping', requireAuth, shippingController.getShippingPage);
-
-=======
 // Product API proxy routes (frontend calls these instead of direct API)
 app.get('/api/marketplace-products/farm/:farmId', requireAuth, productProxyController.getProductsByFarm);
 app.post('/api/marketplace-products', requireAuth, productProxyController.createProduct);
@@ -546,7 +436,6 @@ app.post('/api/season-monitor/create', requireAuth, seasonMonitorController.crea
 app.post('/api/season-monitor/:batchId/progress', requireAuth, seasonMonitorController.updateSeasonProgress);
 app.post('/api/season-monitor/:batchId/export', requireAuth, seasonMonitorController.exportSeason);
 
->>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
 // Notification routes
 app.get('/notifications', requireAuth, notificationController.getNotificationsPage);
 app.get('/api/notifications/stream', requireAuth, notificationController.streamNotifications);
@@ -595,11 +484,7 @@ app.use((err, req, res, next) => {
     } else {
         next(err);
     }
-<<<<<<< HEAD
-})
-=======
 });
->>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
 
 app.use((req, res, next) => {
     res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
@@ -608,10 +493,6 @@ app.use((req, res, next) => {
     next();
 });
 
-<<<<<<< HEAD
-app.listen(port, () => {
-    console.log(`Farm Management web app started on http://localhost:${port}`);
-=======
 // Start server
 app.listen(port, () => {
     console.log(`Farm Management web app started on http://localhost:${port}`);
@@ -628,5 +509,4 @@ process.on('SIGINT', () => {
 process.on('SIGTERM', () => {
     console.log('\nShutting down gracefully...');
     process.exit(0);
->>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
 });

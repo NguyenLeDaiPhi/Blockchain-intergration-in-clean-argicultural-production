@@ -17,8 +17,8 @@ import java.util.function.Function;
 public class JwtUtils {
     private static final Logger logger = LoggerFactory.getLogger(JwtUtils.class);
 
-    // Shared secret from your configuration
-    private static final String SECRET = "YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9uCg==";
+    // Shared secret from your configuration (must match auth-service)
+    private static final String SECRET = "YmljYXAtc2VjcmV0LWtleS1mb3Itand0LWF1dGhlbnRpY2F0aW9u";
 
     private Key getSignInKey() {
         byte[] keyBytes = Decoders.BASE64.decode(SECRET);

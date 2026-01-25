@@ -262,13 +262,6 @@ app.get('/vehicles', requireAuth, async (req, res) => {
 app.post('/vehicles', requireAuth, async (req, res) => {
     try {
         const token = req.cookies.auth_token;
-<<<<<<< HEAD
-        await apiService.createVehicle(token, req.body);
-        res.redirect('/vehicles?success=Xe đã được thêm thành công');
-    } catch (error) {
-        console.error('Error creating vehicle:', error);
-        res.redirect('/vehicles?error=' + encodeURIComponent(error.message || 'Có lỗi xảy ra khi thêm xe'));
-=======
         console.log('📝 [DEBUG] Creating vehicle - Request body:', JSON.stringify(req.body, null, 2));
         await apiService.createVehicle(token, req.body);
         res.redirect('/vehicles?success=Xe đã được thêm thành công');
@@ -307,7 +300,6 @@ app.post('/vehicles', requireAuth, async (req, res) => {
         
         console.error('❌ [ERROR] Final error message to display:', errorMessage);
         res.redirect('/vehicles?error=' + encodeURIComponent(errorMessage));
->>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
     }
 });
 
@@ -345,13 +337,6 @@ app.get('/drivers', requireAuth, async (req, res) => {
 app.post('/drivers', requireAuth, async (req, res) => {
     try {
         const token = req.cookies.auth_token;
-<<<<<<< HEAD
-        await apiService.createDriver(token, req.body);
-        res.redirect('/drivers?success=Tài xế đã được thêm thành công');
-    } catch (error) {
-        console.error('Error creating driver:', error);
-        res.redirect('/drivers?error=' + encodeURIComponent(error.message || 'Có lỗi xảy ra khi thêm tài xế'));
-=======
         console.log('📝 [DEBUG] Creating driver - Request body:', JSON.stringify(req.body, null, 2));
         await apiService.createDriver(token, req.body);
         res.redirect('/drivers?success=Tài xế đã được thêm thành công');
@@ -390,7 +375,6 @@ app.post('/drivers', requireAuth, async (req, res) => {
         
         console.error('❌ [ERROR] Final error message to display:', errorMessage);
         res.redirect('/drivers?error=' + encodeURIComponent(errorMessage));
->>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
     }
 });
 

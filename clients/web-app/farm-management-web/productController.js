@@ -22,12 +22,6 @@ exports.getProductsPage = async (req, res) => {
         const farmId = await getFarmId(ownerId, token);
 
         // Construct the correct marketplace URL for the frontend
-<<<<<<< HEAD
-        const marketplaceApiHost = process.env.API_GATEWAY_BASE_URL || 'http://localhost:8000';
-        const marketplaceApiPath = process.env.MARKETPLACE_API_PATH.startsWith('/') 
-            ? process.env.MARKETPLACE_API_PATH 
-            : new URL(process.env.MARKETPLACE_API_PATH).pathname;
-=======
         // Frontend runs in browser, so must use localhost or public IP, not Docker service name
         let marketplaceApiHost = process.env.API_GATEWAY_BASE_URL || 'http://localhost:8000';
         
@@ -56,17 +50,12 @@ exports.getProductsPage = async (req, res) => {
 
         const marketplaceApiUrl = `${marketplaceApiHost}${marketplaceApiPath}`;
         console.log(`Product API URL for frontend: ${marketplaceApiUrl}`);
->>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
 
         res.render('products', {
             farmId: farmId,
             user: req.user,
             error: farmId ? null : 'Could not find your farm. Please create a farm first.',
-<<<<<<< HEAD
-            marketplaceApiUrl: `${marketplaceApiHost}${marketplaceApiPath}`
-=======
             marketplaceApiUrl: marketplaceApiUrl
->>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
         });
 
     } catch (error) {
@@ -75,11 +64,7 @@ exports.getProductsPage = async (req, res) => {
             farmId: null,
             user: req.user,
             error: 'Could not load product management page.',
-<<<<<<< HEAD
-            marketplaceApiUrl: null
-=======
             marketplaceApiUrl: 'http://localhost:8000/api/marketplace-products'
->>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
         });
     }
 };

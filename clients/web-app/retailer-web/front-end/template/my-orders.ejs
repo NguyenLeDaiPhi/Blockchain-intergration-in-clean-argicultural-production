@@ -1,45 +1,13 @@
 <!DOCTYPE html>
-<<<<<<< HEAD
-<html>
-<head>
-  <title><%= pageTitle %></title>
-=======
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
   <title><%= pageTitle || "Đơn hàng của tôi" %></title>
->>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
   <link rel="stylesheet" href="/css/theme.css">
 </head>
 <body>
 
 <div class="app">
-<<<<<<< HEAD
-  <%- include("partials/sidebar", { user }) %>
-
-  <div class="main">
-    <%- include("partials/header", { pageTitle }) %>
-
-    <main class="content">
-      <div class="content-inner">
-
-        <% if (!orders || orders.length === 0) { %>
-          <p>Bạn chưa có đơn hàng nào</p>
-        <% } else { %>
-          <div class="order-list">
-            <% orders.forEach(o => { %>
-              <div
-                class="order-row"
-                onclick="location.href='/orders/<%= o.orderId %>'"
-              >
-                <span>#<%= o.orderId %></span>
-                <span class="status <%= o.status.toLowerCase() %>">
-                  <%= o.status %>
-                </span>
-              </div>
-            <% }) %>
-          </div>
-=======
 
   <!-- SIDEBAR -->
   <%- include("partials/sidebar", { user }) %>
@@ -87,19 +55,11 @@
             </div>
           <% }) %>
 
->>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
         <% } %>
 
       </div>
     </main>
 
-<<<<<<< HEAD
-    <%- include("partials/footer") %>
-  </div>
-</div>
-
-<script src="/js/layout.js"></script>
-=======
     <!-- FOOTER -->
     <%- include("partials/footer") %>
 
@@ -136,6 +96,5 @@
 <!-- BASE LAYOUT JS -->
 <script src="/js/layout.js"></script>
 
->>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
 </body>
 </html>

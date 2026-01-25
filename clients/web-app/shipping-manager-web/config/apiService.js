@@ -5,8 +5,6 @@ require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 const SHIPPING_API = process.env.SHIPPING_SERVICE_URL;
 const FARM_API = process.env.FARM_SERVICE_URL;
 
-<<<<<<< HEAD
-=======
 // Configure axios để parse cả text/plain response (cho error messages)
 axios.defaults.transformResponse = [
     function (data, headers) {
@@ -27,7 +25,6 @@ axios.defaults.transformResponse = [
     }
 ];
 
->>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
 // Hàm helper để cấu hình Header có Token
 const getHeaders = (token) => ({
     headers: { Authorization: `Bearer ${token}` }
@@ -103,12 +100,6 @@ const apiService = {
 
     createVehicle: async (token, vehicleData) => {
         try {
-<<<<<<< HEAD
-            const response = await axios.post(`${SHIPPING_API}/vehicles`, vehicleData, getHeaders(token));
-            return response.data;
-        } catch (error) {
-            throw error;
-=======
             console.log('📝 [apiService] Creating vehicle with data:', JSON.stringify(vehicleData, null, 2));
             
             // Sử dụng validateStatus để không throw error cho 4xx, cho phép xử lý response body
@@ -186,7 +177,6 @@ const apiService = {
             
             console.error('❌ [apiService] Final extracted error message:', errorMessage);
             throw new Error(errorMessage);
->>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
         }
     },
 
@@ -195,14 +185,10 @@ const apiService = {
             const response = await axios.put(`${SHIPPING_API}/vehicles/${vehicleId}`, vehicleData, getHeaders(token));
             return response.data;
         } catch (error) {
-<<<<<<< HEAD
-            throw error;
-=======
             // Extract error message from response
             const errorMessage = error.response?.data || error.message;
             const validationError = new Error(typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage));
             throw validationError;
->>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
         }
     },
 
@@ -217,12 +203,6 @@ const apiService = {
 
     createDriver: async (token, driverData) => {
         try {
-<<<<<<< HEAD
-            const response = await axios.post(`${SHIPPING_API}/drivers`, driverData, getHeaders(token));
-            return response.data;
-        } catch (error) {
-            throw error;
-=======
             console.log('📝 [apiService] Creating driver with data:', JSON.stringify(driverData, null, 2));
             
             // Sử dụng validateStatus để không throw error cho 4xx, cho phép xử lý response body
@@ -300,7 +280,6 @@ const apiService = {
             
             console.error('❌ [apiService] Final extracted error message:', errorMessage);
             throw new Error(errorMessage);
->>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
         }
     },
 
@@ -309,14 +288,10 @@ const apiService = {
             const response = await axios.put(`${SHIPPING_API}/drivers/${driverId}`, driverData, getHeaders(token));
             return response.data;
         } catch (error) {
-<<<<<<< HEAD
-            throw error;
-=======
             // Extract error message from response
             const errorMessage = error.response?.data || error.message;
             const validationError = new Error(typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage));
             throw validationError;
->>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
         }
     },
 

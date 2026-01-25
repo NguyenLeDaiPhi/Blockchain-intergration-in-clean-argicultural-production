@@ -2,7 +2,6 @@
     "configurations": [
         {
             "type": "java",
-<<<<<<< HEAD
             "name": "AdminServiceApplication",
             "request": "launch",
             "mainClass": "com.example.admin_service.AdminServiceApplication",
@@ -10,8 +9,6 @@
         },
         {
             "type": "java",
-=======
->>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
             "name": "FarmManagementApplication",
             "request": "launch",
             "mainClass": "com.bicap.farm_management.FarmManagementApplication",
@@ -103,7 +100,6 @@
             "projectName": "com.bicap-blockchain-adapter-service",
             "args": "",
             "envFile": "${workspaceFolder}/.env"
-<<<<<<< HEAD
         },
         {
             "type": "java",
@@ -114,8 +110,6 @@
             "projectName": "trading_order_service",
             "args": "",
             "envFile": "${workspaceFolder}/.env"
-=======
->>>>>>> 49ae5ee44aadfe2a1938c9fc96614371b4fbff2d
         }
     ]
 }
