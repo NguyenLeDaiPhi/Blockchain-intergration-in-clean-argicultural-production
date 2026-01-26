@@ -108,37 +108,21 @@ document.addEventListener("click", (e) => {
 });
 
 /************************************
- * PAYMENT POPUP
+ * ORDER POPUP
  ************************************/
 document.querySelector(".btn-checkout")?.addEventListener("click", () => {
-  document.getElementById("paymentTotal").innerText = updateGrandTotal();
-  document.getElementById("paymentOverlay")?.classList.add("show");
+  document.getElementById("orderTotal").innerText = updateGrandTotal();
+  document.getElementById("orderOverlay")?.classList.add("show");
 });
 
-function closePayment() {
-  document.getElementById("paymentOverlay")?.classList.remove("show");
+function closeOrder() {
+  document.getElementById("orderOverlay")?.classList.remove("show");
 }
 
-/************************************
- * MOMO DEMO FLOW
- ************************************/
-let currentPaymentToken = null;
-
 /**
- * NEXT
+ * Tạo order khi nhập địa chỉ và click đặt hàng
  */
-async function handlePaymentNext() {
-  console.log("🔥 CLICK NEXT OK");
-
-  const method = document.querySelector(
-    "input[name='paymentMethod']:checked"
-  )?.value;
-
-  if (method !== "momo") {
-    alert("Vui lòng chọn MoMo");
-    return;
-  }
-
+async function handleCreateOrder() {
   const addressInput = document.getElementById("shippingAddress");
   const shippingAddress = addressInput?.value.trim();
 
@@ -148,21 +132,15 @@ async function handlePaymentNext() {
     return;
   }
 
-  window.shippingAddress = shippingAddress;
-  await startMomoPayment();
-}
+  // Kiểm tra giỏ hàng
+  if (!window.cartItems.length) {
+    alert("Giỏ hàng trống");
+    return;
+  }
 
-/**
- * CREATE PAYMENT (DEMO MODE)
- */
-async function startMomoPayment() {
   try {
-    if (!window.cartItems.length) {
-      alert("Giỏ hàng trống");
-      return;
-    }
-
-    const res = await fetch("http://localhost:8000/api/payments/momo", {
+    // Tạo order trực tiếp
+    const res = await fetch("http://localhost:8000/api/orders", {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -171,67 +149,29 @@ async function startMomoPayment() {
           productId: i.id,
           quantity: i.quantity
         })),
-        shippingAddress: window.shippingAddress
+        shippingAddress: shippingAddress
       })
     });
 
     if (!res.ok) {
       const text = await res.text();
-      console.error(text);
-      throw new Error("Create payment failed");
-    }
-
-    const data = await res.json();
-    currentPaymentToken = data.paymentToken;
-
-    // Ẩn popup thanh toán
-    document.getElementById("paymentOverlay").classList.remove("show");
-
-    // HIỆN POPUP DEMO (KHÔNG redirect)
-    const qrOverlay = document.getElementById("qrOverlay");
-
-    qrOverlay.classList.remove("hidden");
-    qrOverlay.classList.add("show");
-    
-    document.getElementById("qrTotal").innerText = data.amount;
-
-  } catch (err) {
-    console.error(err);
-    alert("Không tạo được thanh toán MoMo");
-  }
-}
-
-/**
- * CONFIRM PAYMENT (DEMO)
- */
-async function confirmMomoPayment() {
-  try {
-    if (!currentPaymentToken) {
-      alert("Thiếu payment token");
-      return;
-    }
-
-    const res = await fetch(
-      `http://localhost:8000/api/payments/momo/success/${currentPaymentToken}`,
-      {
-        method: "GET",
-        credentials: "include"
-      }
-    );
-
-    if (!res.ok) {
-      const text = await res.text();
-      console.error(text);
-      throw new Error("Confirm failed");
+      console.error("Error:", text);
+      throw new Error("Tạo đơn hàng thất bại");
     }
 
     const order = await res.json();
-
-    // Redirect order detail
-    window.location.href = `/orders/${order.orderId}`;
+    
+    // Đóng popup
+    document.getElementById("orderOverlay").classList.remove("show");
+    
+    // Hiển thị thông báo thành công
+    alert("✅ Đặt hàng thành công!");
+    
+    // Redirect đến trang chi tiết đơn hàng
+    window.location.href = `/orders/${order.id || order.orderId}`;
 
   } catch (err) {
     console.error(err);
-    alert("Thanh toán thất bại");
+    alert("Lỗi: " + (err.message || "Không thể tạo đơn hàng. Vui lòng thử lại."));
   }
 }

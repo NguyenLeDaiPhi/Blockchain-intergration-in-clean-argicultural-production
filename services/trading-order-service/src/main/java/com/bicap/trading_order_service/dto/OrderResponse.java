@@ -23,6 +23,9 @@ public class OrderResponse {
     
     // Delivery confirmed timestamp
     private LocalDateTime deliveryConfirmedAt;
+    
+    // Shipping address
+    private String shippingAddress;
 
     /* ===== CONSTRUCTORS ===== */
 
@@ -90,6 +93,7 @@ public class OrderResponse {
         );
         response.setDeliveryImages(deliveryImages);
         response.setDeliveryConfirmedAt(order.getDeliveryConfirmedAt());
+        response.setShippingAddress(order.getShippingAddress());
         
         return response;
     }
@@ -130,5 +134,13 @@ public class OrderResponse {
 
     public void setDeliveryConfirmedAt(LocalDateTime deliveryConfirmedAt) {
         this.deliveryConfirmedAt = deliveryConfirmedAt;
+    }
+    
+    public String getShippingAddress() {
+        return shippingAddress;
+    }
+    
+    public void setShippingAddress(String shippingAddress) {
+        this.shippingAddress = shippingAddress;
     }
 }

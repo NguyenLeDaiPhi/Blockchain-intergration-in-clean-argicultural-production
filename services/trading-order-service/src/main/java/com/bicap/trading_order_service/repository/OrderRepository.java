@@ -109,8 +109,12 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     );
 
     // ADMIN
-    @Query("SELECT o FROM Order o ORDER BY o.createdAt DESC")
+    @Query("SELECT DISTINCT o FROM Order o LEFT JOIN FETCH o.items i LEFT JOIN FETCH i.product ORDER BY o.createdAt DESC")
     List<Order> findAllOrdersForAdmin();
 
-    List<Order> findByStatusOrderByCreatedAtDesc(String status);
+    @Query("SELECT DISTINCT o FROM Order o LEFT JOIN FETCH o.items i LEFT JOIN FETCH i.product WHERE o.status = :status ORDER BY o.createdAt DESC")
+    List<Order> findByStatusOrderByCreatedAtDesc(@Param("status") String status);
+    
+    @Query("SELECT DISTINCT o FROM Order o LEFT JOIN FETCH o.items i LEFT JOIN FETCH i.product WHERE o.id = :id")
+    java.util.Optional<Order> findByIdWithItems(@Param("id") Long id);
 }

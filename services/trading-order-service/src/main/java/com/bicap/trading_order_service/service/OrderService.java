@@ -52,6 +52,9 @@ public class OrderService implements IOrderService {
 
         Order order = new Order();
         order.setBuyerEmail(buyerEmail);
+        // TODO: Lấy buyer_id từ auth service dựa trên email
+        // Tạm thời set buyer_id = 0 (sẽ được cập nhật sau)
+        order.setBuyerId(0L);
         order.setShippingAddress(request.getShippingAddress());
         order.setStatus("CREATED");
 

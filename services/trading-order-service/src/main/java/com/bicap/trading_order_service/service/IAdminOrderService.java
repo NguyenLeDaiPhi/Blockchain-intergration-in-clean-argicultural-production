@@ -36,4 +36,9 @@ public interface IAdminOrderService {
      * Lấy thống kê đơn hàng
      */
     OrderStatisticsDTO getOrderStatistics();
+    
+    /**
+     * Admin chấp nhận đơn hàng (chuyển từ CREATED sang CONFIRMED)
+     */
+    OrderResponse confirmOrder(Long orderId);
 }

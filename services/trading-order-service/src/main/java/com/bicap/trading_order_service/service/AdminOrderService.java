@@ -27,7 +27,7 @@ public class AdminOrderService implements IAdminOrderService {
 
     @Override
     public OrderResponse getOrderById(Long orderId) {
-        Order order = orderRepository.findById(orderId)
+        Order order = orderRepository.findByIdWithItems(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
         return OrderResponse.fromEntity(order);
     }
@@ -65,5 +65,26 @@ public class AdminOrderService implements IAdminOrderService {
                 completedOrders,
                 rejectedOrders
         );
+    }
+    
+    @Override
+    public OrderResponse confirmOrder(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
+        
+        // Cho phép confirm lại nếu đã CONFIRMED (idempotent)
+        if ("CONFIRMED".equals(order.getStatus())) {
+            // Đơn hàng đã được confirm rồi, trả về luôn
+            return OrderResponse.fromEntity(order);
+        }
+        
+        if (!"CREATED".equals(order.getStatus())) {
+            throw new RuntimeException("Only CREATED orders can be confirmed. Current status: " + order.getStatus());
+        }
+        
+        order.setStatus("CONFIRMED");
+        Order savedOrder = orderRepository.save(order);
+        
+        return OrderResponse.fromEntity(savedOrder);
     }
 }

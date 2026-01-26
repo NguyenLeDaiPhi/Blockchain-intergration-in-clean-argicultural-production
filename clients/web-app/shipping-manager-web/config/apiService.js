@@ -2,7 +2,10 @@ const axios = require('axios');
 const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 
-const SHIPPING_API = process.env.SHIPPING_SERVICE_URL;
+// Use direct service URL instead of Kong gateway for internal service-to-service calls
+const SHIPPING_API = process.env.SHIPPING_SERVICE_URL || 'http://shipping-manager-service:8083/api';
+// If using Kong gateway, try direct service first
+const SHIPPING_API_DIRECT = 'http://shipping-manager-service:8083/api';
 const FARM_API = process.env.FARM_SERVICE_URL;
 
 // Configure axios để parse cả text/plain response (cho error messages)
@@ -304,13 +307,24 @@ const apiService = {
         }
     },
 
-    // --- FARM ORDERS (Để tạo vận đơn) ---
+    // --- ORDERS (Để tạo vận đơn) ---
     getConfirmedOrders: async (token) => {
         try {
-            const response = await axios.get(`${FARM_API}/orders`, getHeaders(token));
-            // Lọc các đơn hàng có trạng thái CONFIRMED (Đã xác nhận, chờ giao)
-            return response.data.filter(order => order.status === 'CONFIRMED');
+            // Gọi shipping-manager-service trực tiếp (không qua Kong) để lấy đơn hàng CONFIRMED
+            // Vì shipping-manager-web và shipping-manager-service đều trong cùng Docker network
+            console.log("DEBUG: Calling getConfirmedOrders with token:", token ? "present" : "missing");
+            const headers = getHeaders(token);
+            console.log("DEBUG: Headers:", JSON.stringify(headers));
+            const url = `${SHIPPING_API_DIRECT}/orders/confirmed`;
+            console.log("DEBUG: URL:", url);
+            const response = await axios.get(url, headers);
+            console.log("DEBUG: Response status:", response.status, "Data length:", Array.isArray(response.data) ? response.data.length : "not array");
+            return response.data || [];
         } catch (error) {
+            console.error("ERROR: Error fetching confirmed orders:", error.message);
+            if (error.response) {
+                console.error("ERROR: Backend Details:", error.response.status, error.response.data);
+            }
             return [];
         }
     },

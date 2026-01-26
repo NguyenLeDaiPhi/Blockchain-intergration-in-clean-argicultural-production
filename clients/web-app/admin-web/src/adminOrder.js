@@ -571,6 +571,25 @@ router.get('/api/v1/admin/orders/statistics', requireAuth, requireAdmin, async (
 });
 
 // API Proxy: Đếm tổng đơn hàng
+router.put('/api/v1/admin/orders/:id/confirm', requireAuth, requireAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const headers = { Authorization: `Bearer ${req.accessToken}` };
+        
+        const response = await axios.put(`${ADMIN_SERVICE_URL}/api/v1/admin/orders/${id}/confirm`, {}, { 
+            headers,
+            timeout: 5000
+        });
+        
+        return res.json(response.data);
+    } catch (error) {
+        console.error('Lỗi chấp nhận đơn hàng:', error.response?.data || error.message);
+        return res.status(error.response?.status || 500).json({ 
+            error: error.response?.data?.message || 'Không thể chấp nhận đơn hàng' 
+        });
+    }
+});
+
 router.get('/api/v1/admin/orders/count', requireAuth, requireAdmin, async (req, res) => {
     try {
         const headers = { Authorization: `Bearer ${req.accessToken}` };
